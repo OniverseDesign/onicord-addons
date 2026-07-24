@@ -79,13 +79,26 @@ function buildAddonsRepo() {
         fs.writeFileSync(path.join(targetIdDir, "package.onimod"), compressed);
         fs.writeFileSync(path.join(targetIdDir, "manifest.json"), JSON.stringify(manifest, null, 2));
 
+        // Copy assets folder if exists
+        const sourceAssetsDir = path.join(folderPath, "assets");
+        const targetAssetsDir = path.join(targetIdDir, "assets");
+        if (fs.existsSync(sourceAssetsDir)) {
+          if (!fs.existsSync(targetAssetsDir)) fs.mkdirSync(targetAssetsDir, { recursive: true });
+          const assetFiles = fs.readdirSync(sourceAssetsDir);
+          for (const assetFile of assetFiles) {
+            fs.copyFileSync(path.join(sourceAssetsDir, assetFile), path.join(targetAssetsDir, assetFile));
+          }
+        }
+
+        const iconPath = manifest.icon || "assets/icon.png";
+
         catalog.push({
           id: pluginId,
           name: manifest.name,
           version: manifest.version,
           author: manifest.author || "Oniverse",
           description: manifest.description || "",
-          icon: `https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/${pluginId}/${manifest.icon || "assets/icon.png"}`,
+          icon: `https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/${entry.name}/${iconPath}`,
           downloadUrl: `https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/${pluginId}/package.onimod`
         });
 

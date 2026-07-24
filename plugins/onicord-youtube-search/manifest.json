@@ -3,7 +3,7 @@
   "name": "YouTube Search",
   "icon": "assets/icon.png",
   "version": "1.0.0",
-  "author": "Onicord",
+  "author": "Oniverse",
   "description": "Busca videos de YouTube directamente desde el chat usando el comando /y.",
   "main": "index.js",
   "commands": [
