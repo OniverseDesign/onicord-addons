@@ -1,26 +1,24 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-07-24T20:16:20.373Z",
+  "updatedAt": "2026-07-24T20:47:48.579Z",
   "plugins": [
     {
       "id": "onicord-google-search",
-      "dirName": "google-search",
       "name": "Google Search",
       "version": "1.1.0",
       "author": "Oniverse",
       "description": "Busca información en Google e IA y publica el resultado formateado en el chat.",
-      "icon": "https://raw.githubusercontent.com/oniverse/onicord-addons/main/plugins/onicord-google-search/assets/icon.png",
-      "downloadUrl": "https://raw.githubusercontent.com/oniverse/onicord-addons/main/plugins/onicord-google-search/package.onimod"
+      "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-google-search/assets/icon.png",
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-google-search/package.onimod"
     },
     {
       "id": "onicord-youtube-search",
-      "dirName": "youtube-search",
       "name": "YouTube Search",
       "version": "1.0.0",
       "author": "Onicord",
       "description": "Busca videos de YouTube directamente desde el chat usando el comando /y.",
-      "icon": "https://raw.githubusercontent.com/oniverse/onicord-addons/main/plugins/onicord-youtube-search/assets/icon.png",
-      "downloadUrl": "https://raw.githubusercontent.com/oniverse/onicord-addons/main/plugins/onicord-youtube-search/package.onimod"
+      "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-youtube-search/assets/icon.png",
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-youtube-search/package.onimod"
     }
   ]
 }
