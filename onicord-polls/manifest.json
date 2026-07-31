@@ -1,0 +1,24 @@
+{
+  "id": "onicord-polls",
+  "name": "Encuestas Rápidas",
+  "icon": "assets/icon.png",
+  "version": "1.0.0",
+  "author": "Oniverse",
+  "description": "Crea encuestas interactivas en el chat usando el comando /p.",
+  "main": "index.js",
+  "commands": [
+    {
+      "command": "/p",
+      "description": "Crea una encuesta interactiva. Uso: /p Pregunta -Opción 1 -Opción 2"
+    }
+  ],
+  "defaultConfig": {
+    "prefix": "/p",
+    "showInIsland": false
+  },
+  "permissions": [
+    "chat.read",
+    "chat.send",
+    "p2p.network"
+  ]
+}

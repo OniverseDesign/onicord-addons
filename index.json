@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-07-24T21:10:40.521Z",
+  "updatedAt": "2026-07-31T04:41:02.048Z",
   "plugins": [
     {
       "id": "onicord-google-search",
@@ -10,6 +10,15 @@
       "description": "Busca información en Google e IA y publica el resultado formateado en el chat.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/google-search/assets/icon.png",
       "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-google-search/package.onimod"
+    },
+    {
+      "id": "onicord-polls",
+      "name": "Encuestas Rápidas",
+      "version": "1.0.0",
+      "author": "Oniverse",
+      "description": "Crea encuestas interactivas en el chat usando el comando /p.",
+      "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/onicord-polls/assets/icon.png",
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-polls/package.onimod"
     },
     {
       "id": "onicord-youtube-search",
