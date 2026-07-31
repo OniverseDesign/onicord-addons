@@ -5,7 +5,7 @@ This repository contains official addons, community modules, build tools, and th
 
 ---
 
-## 🧩 Addon Architecture & How Plugins Work in Onicord
+## Addon Architecture & How Plugins Work in Onicord
 
 Onicord introduces a **decentralized P2P Workshop model** for extensibility inspired by Steam Workshop, V8 sandboxing, and generic P2P data channels.
 
@@ -16,25 +16,25 @@ Onicord introduces a **decentralized P2P Workshop model** for extensibility insp
 
 ---
 
-## 🎨 UI Injection Slots
+## UI Injection Slots
 
 Addons can inject custom interfaces into 5 secure, isolated UI slots:
 
-1. **🏝️ Plugin Island Widget (Right Panel Slot)**:
+1. **Plugin Island Widget (Right Panel Slot)**:
    - Positioned between the Rich Presence Island and the Member List on the right sidebar.
    - Allows active plugins to render compact, card-style widgets (e.g., active polls, jukebox control bars, server counters, climate widgets).
-2. **💬 Rich Cards in Chat**:
+2. **Rich Cards in Chat**:
    - Render interactive card embeds directly inside the chat feed (e.g., polls with click-to-vote buttons, dice rolls, interactive minigames).
-3. **📊 Extended Side Panels & Modals**:
+3. **Extended Side Panels & Modals**:
    - Slide-out panels or modals for complex tools (e.g., shared whiteboard, music queue manager).
-4. **🔘 Quick Action Toolbar Icons**:
+4. **Quick Action Toolbar Icons**:
    - Custom buttons added to channel header toolbars (e.g., soundboard trigger next to microphone controls).
-5. **🎙️ Voice Channel Overlays (PiP)**:
+5. **Voice Channel Overlays (PiP)**:
    - Picture-in-Picture widgets for voice channels.
 
 ---
 
-## ⚙️ Generic Interactive Embeds & Actions Protocol (`[PLUGIN_EMBED]` and `[PLUGIN_ACTION]`)
+## Generic Interactive Embeds & Actions Protocol (`[PLUGIN_EMBED]` and `[PLUGIN_ACTION]`)
 
 To allow **any plugin** to render rich cards and handle user interactions without modifying Onicord's core source code, the application provides a generic payload protocol:
 
@@ -84,7 +84,7 @@ When loading room history, Onicord reconciles `[PLUGIN_ACTION]` packets onto tar
 
 ---
 
-## 🔒 Granular Permissions System (`manifest.json`)
+## Granular Permissions System (`manifest.json`)
 
 Addons must explicitly declare required permissions in `manifest.json`. Users can review and approve permissions before enabling an addon:
 
@@ -101,7 +101,7 @@ Addons must explicitly declare required permissions in `manifest.json`. Users ca
 
 ---
 
-## 🛠️ How to Create, Build, and Package an Addon (`.onimod`)
+## How to Create, Build, and Package an Addon (`.onimod`)
 
 ### 1. Addon Directory Structure
 Create a directory inside `addons/` containing your addon source code:
@@ -176,7 +176,7 @@ The compiler will automatically:
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 - `index.json`: Central catalog registry listing compiled addons.
 - `build.js`: Addon compiler script that packages addons into `.onimod` bundles.

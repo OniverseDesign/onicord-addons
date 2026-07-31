@@ -1,4 +1,4 @@
-// Onicord Polls Addon (/p)
+// Complemento oficial de Onicord: Encuestas Rápidas (/p)
 
 function parsePollInput(rawInput) {
   if (!rawInput || typeof rawInput !== "string") return null;
@@ -46,6 +46,31 @@ function parsePollInput(rawInput) {
   };
 }
 
-module.exports = {
-  parsePollInput,
-};
+if (typeof Onicord !== "undefined" && Onicord.chat?.onCommand) {
+  Onicord.chat.onCommand("p", (args) => {
+    const rawInput = args.join(" ");
+    const parsed = parsePollInput(rawInput.startsWith("/p") ? rawInput : `/p ${rawInput}`);
+
+    if (!parsed) {
+      if (Onicord.ui?.showToast) {
+        Onicord.ui.showToast("⚠️ Uso: /p ¿Qué cenamos hoy? -Pizza -Tacos");
+      }
+      return;
+    }
+
+    const embedPayload = {
+      pluginId: "onicord-polls",
+      type: "poll",
+      data: {
+        pollId: `poll_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        question: parsed.question,
+        options: parsed.options,
+        createdAt: Date.now(),
+      },
+    };
+
+    Onicord.chat.sendMessage({
+      text: `[PLUGIN_EMBED]:${JSON.stringify(embedPayload)}`,
+    });
+  });
+}
