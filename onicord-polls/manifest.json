@@ -1,10 +1,16 @@
 {
   "id": "onicord-polls",
-  "name": "Encuestas Rápidas",
+  "name": "Quick Polls",
   "icon": "assets/icon.png",
   "version": "1.0.0",
   "author": "Oniverse",
-  "description": "Crea encuestas interactivas en el chat usando el comando /p.",
+  "description": "Create real-time interactive polls in chat using the /p command.",
+  "locales": {
+    "es": {
+      "name": "Encuestas Rápidas",
+      "description": "Crea encuestas interactivas en el chat usando el comando /p."
+    }
+  },
   "main": "index.js",
   "commands": [
     {

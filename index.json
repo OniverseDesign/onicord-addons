@@ -1,33 +1,51 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-07-31T05:09:07.079Z",
+  "updatedAt": "2026-07-31T13:44:36.794Z",
   "plugins": [
     {
       "id": "onicord-google-search",
       "name": "Google Search",
       "version": "1.1.0",
       "author": "Oniverse",
-      "description": "Busca información en Google e IA y publica el resultado formateado en el chat.",
+      "description": "Search Google & AI and post formatted web results directly into chat.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/google-search/assets/icon.png",
-      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-google-search/package.onimod"
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-google-search/package.onimod",
+      "locales": {
+        "es": {
+          "name": "Búsqueda en Google",
+          "description": "Busca información en Google e IA y publica el resultado formateado en el chat."
+        }
+      }
     },
     {
       "id": "onicord-polls",
-      "name": "Encuestas Rápidas",
+      "name": "Quick Polls",
       "version": "1.0.0",
       "author": "Oniverse",
-      "description": "Crea encuestas interactivas en el chat usando el comando /p.",
+      "description": "Create real-time interactive polls in chat using the /p command.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/onicord-polls/assets/icon.png",
-      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-polls/package.onimod"
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-polls/package.onimod",
+      "locales": {
+        "es": {
+          "name": "Encuestas Rápidas",
+          "description": "Crea encuestas interactivas en el chat usando el comando /p."
+        }
+      }
     },
     {
       "id": "onicord-youtube-search",
       "name": "YouTube Search",
       "version": "1.0.0",
       "author": "Oniverse",
-      "description": "Busca videos de YouTube directamente desde el chat usando el comando /y.",
+      "description": "Search YouTube videos directly from chat using the /y command.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/youtube-search/assets/icon.png",
-      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-youtube-search/package.onimod"
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-youtube-search/package.onimod",
+      "locales": {
+        "es": {
+          "name": "Búsqueda en YouTube",
+          "description": "Busca videos de YouTube directamente desde el chat usando el comando /y."
+        }
+      }
     }
   ]
 }

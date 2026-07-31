@@ -4,7 +4,13 @@
   "icon": "assets/icon.png",
   "version": "1.0.0",
   "author": "Oniverse",
-  "description": "Busca videos de YouTube directamente desde el chat usando el comando /y.",
+  "description": "Search YouTube videos directly from chat using the /y command.",
+  "locales": {
+    "es": {
+      "name": "Búsqueda en YouTube",
+      "description": "Busca videos de YouTube directamente desde el chat usando el comando /y."
+    }
+  },
   "main": "index.js",
   "commands": [
     {

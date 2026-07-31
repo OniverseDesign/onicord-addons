@@ -92,7 +92,7 @@ function buildAddonsRepo() {
 
         const iconPath = manifest.icon || "assets/icon.png";
 
-        catalog.push({
+        const catalogItem = {
           id: pluginId,
           name: manifest.name,
           version: manifest.version,
@@ -100,7 +100,13 @@ function buildAddonsRepo() {
           description: manifest.description || "",
           icon: `https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/${entry.name}/${iconPath}`,
           downloadUrl: `https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/${pluginId}/package.onimod`
-        });
+        };
+
+        if (manifest.locales) {
+          catalogItem.locales = manifest.locales;
+        }
+
+        catalog.push(catalogItem);
 
         console.log(`[OK] Addon packaged: ${manifest.name} (ID: ${pluginId}) -> plugins/${pluginId}/package.onimod`);
       }
