@@ -8,14 +8,19 @@
   "locales": {
     "es": {
       "name": "Búsqueda en Google",
-      "description": "Busca información en Google e IA y publica el resultado formateado en el chat."
+      "description": "Busca información en Google e IA y publica el resultado formateado en el chat.",
+      "commands": {
+        "/g": {
+          "description": "Busca en la web o limpia el historial (/g clear)."
+        }
+      }
     }
   },
   "main": "index.js",
   "commands": [
     {
       "command": "/g",
-      "description": "Busca en la web o limpia el historial (/g clear)."
+      "description": "Search the web or clear history (/g clear)."
     }
   ],
   "defaultConfig": {

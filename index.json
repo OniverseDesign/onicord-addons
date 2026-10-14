@@ -1,7 +1,16 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-07-31T13:44:36.794Z",
+  "updatedAt": "2026-10-14T03:27:29.900Z",
   "plugins": [
+    {
+      "id": "com.oniverse.demo_dashboard_addon",
+      "name": "Demo Widgets Addon",
+      "version": "1.0.0",
+      "author": "Oniverse Team",
+      "description": "Demostración de widgets extensibles locales y colaborativos P2P para el Panel de Widgets.",
+      "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/demo_dashboard_addon/assets/icon.png",
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/com.oniverse.demo_dashboard_addon/package.onimod"
+    },
     {
       "id": "onicord-google-search",
       "name": "Google Search",
@@ -13,7 +22,41 @@
       "locales": {
         "es": {
           "name": "Búsqueda en Google",
-          "description": "Busca información en Google e IA y publica el resultado formateado en el chat."
+          "description": "Busca información en Google e IA y publica el resultado formateado en el chat.",
+          "commands": {
+            "/g": {
+              "description": "Busca en la web o limpia el historial (/g clear)."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "onicord-dice",
+      "name": "Dices",
+      "version": "1.0.0",
+      "author": "Oniverse",
+      "description": "Real-time configurable dice roller for the room.",
+      "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/onicord-dice/assets/icon.png",
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-dice/package.onimod",
+      "locales": {
+        "es": {
+          "name": "Dados",
+          "description": "Dado virtual colaborativo y configurable en tiempo real para el panel de la sala.",
+          "commands": {
+            "/roll": {
+              "description": "Lanza dados configurados directamente desde el chat (ej: /roll, /roll 2d6, /roll 1d20)."
+            }
+          }
+        },
+        "en": {
+          "name": "Dices",
+          "description": "Real-time configurable dice roller for the room.",
+          "commands": {
+            "/roll": {
+              "description": "Roll configured dice directly from chat (e.g. /roll, /roll 2d6, /roll 1d20)."
+            }
+          }
         }
       }
     },
@@ -28,7 +71,12 @@
       "locales": {
         "es": {
           "name": "Encuestas Rápidas",
-          "description": "Crea encuestas interactivas en el chat usando el comando /p."
+          "description": "Crea encuestas interactivas en el chat usando el comando /p.",
+          "commands": {
+            "/p": {
+              "description": "Crea una encuesta interactiva. Uso: /p Pregunta -Opción 1 -Opción 2"
+            }
+          }
         }
       }
     },
@@ -43,7 +91,12 @@
       "locales": {
         "es": {
           "name": "Búsqueda en YouTube",
-          "description": "Busca videos de YouTube directamente desde el chat usando el comando /y."
+          "description": "Busca videos de YouTube directamente desde el chat usando el comando /y.",
+          "commands": {
+            "/y": {
+              "description": "Busca un video en YouTube. Ej: /y Olivia Rodrigo Vampire"
+            }
+          }
         }
       }
     }
