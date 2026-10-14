@@ -801,8 +801,10 @@
             spec: `${state.count}d${state.faces}`,
             rolls: targetRolls,
             total,
-            time: timeStr
+            time: timeStr,
+            timestamp: Date.now()
           });
+          state.history = state.history.slice(0, 30);
           renderHistory();
           saveHistoryToStorage();
 
@@ -820,7 +822,7 @@
       }
 
       const total = targetRolls.reduce((a, b) => a + b, 0);
-      let authorName = "Tú";
+      let authorName = "Usuario";
       if (window.OnicordWidgetAPI?.user) {
         const profile = window.OnicordWidgetAPI.user.getProfile();
         if (profile?.nickname) authorName = profile.nickname;
@@ -1020,8 +1022,40 @@
       }
     }
 
+    function mergeRemoteHistory(remoteHistory) {
+      if (!Array.isArray(remoteHistory) || remoteHistory.length === 0) return;
+      const keySet = new Set(state.history.map(h => `${h.user}_${h.total}_${h.time || ""}_${h.timestamp || ""}`));
+      let changed = false;
+      for (const item of remoteHistory) {
+        const key = `${item.user}_${item.total}_${item.time || ""}_${item.timestamp || ""}`;
+        if (!keySet.has(key)) {
+          state.history.push(item);
+          keySet.add(key);
+          changed = true;
+        }
+      }
+      if (changed) {
+        state.history.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        state.history = state.history.slice(0, 30);
+        renderHistory();
+        saveHistoryToStorage();
+      }
+    }
+
+    function broadcastStateRequest() {
+      if (window.OnicordWidgetAPI?.p2p?.broadcast) {
+        window.OnicordWidgetAPI.p2p.broadcast({
+          type: "DICE_STATE_REQUEST"
+        });
+      }
+    }
+
     // ─── INITIALIZATION & P2P LISTENERS ────────────────────────────────
+    let isInitialized = false;
     async function initWidget() {
+      if (isInitialized) return;
+      isInitialized = true;
+
       await loadConfigFromStorage();
       await loadHistoryFromStorage();
 
@@ -1035,21 +1069,61 @@
 
       if (window.OnicordWidgetAPI?.p2p?.onMessage) {
         window.OnicordWidgetAPI.p2p.onMessage((data, senderPeerId) => {
-          if (!data) return;
+          if (!data || typeof data !== "object") return;
 
-          if (data.type === "DICE_ROLL_START") {
+          if (data.type === "DICE_STATE_REQUEST") {
+            // Un compañero solicita el estado actual de los dados en la sala
+            if (state.configured && window.OnicordWidgetAPI?.p2p?.broadcast) {
+              window.OnicordWidgetAPI.p2p.broadcast({
+                type: "DICE_STATE_RESPONSE",
+                count: state.count,
+                faces: state.faces,
+                configured: state.configured,
+                history: state.history,
+                currentRolls: state.currentRolls
+              });
+            }
+          } else if (data.type === "DICE_STATE_RESPONSE") {
+            // Recibido el estado configurado por otro usuario de la sala
+            if (data.configured) {
+              const wasNotConfigured = !state.configured;
+              state.count = data.count || 2;
+              state.faces = data.faces || 6;
+              state.configured = true;
+
+              if (Array.isArray(data.currentRolls) && data.currentRolls.length === state.count) {
+                state.currentRolls = data.currentRolls;
+              } else {
+                state.currentRolls = Array(state.count).fill(state.faces);
+              }
+              renderDiceElements(state.currentRolls, false);
+
+              if (Array.isArray(data.history)) {
+                mergeRemoteHistory(data.history);
+              }
+
+              saveConfigToStorage();
+
+              if (wasNotConfigured) {
+                showView("main");
+              }
+            }
+          } else if (data.type === "DICE_ROLL_START") {
             if (data.count && data.faces) {
               state.count = data.count;
               state.faces = data.faces;
+              state.configured = true;
             }
+            showView("main");
             executeRollAnimation(data.rolls || [1], data.authorName || "Compañero");
           } else if (data.type === "DICE_CONFIG_UPDATE") {
-            state.count = data.count || 1;
+            state.count = data.count || 2;
             state.faces = data.faces || 6;
             state.configured = true;
             state.currentRolls = Array(state.count).fill(state.faces);
             renderDiceElements(state.currentRolls, false);
             saveConfigToStorage();
+            showView("main");
           } else if (data.type === "DICE_CLEAR_HISTORY") {
             state.history = [];
             renderHistory();
@@ -1057,6 +1131,10 @@
           }
         });
       }
+
+      // Solicitar el estado sincronizado de la sala de inmediato y tras 1.2 segundos
+      broadcastStateRequest();
+      setTimeout(broadcastStateRequest, 1200);
     }
 
     if (window.OnicordWidgetAPI) {

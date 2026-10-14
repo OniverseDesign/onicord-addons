@@ -109,33 +109,86 @@ window.electronAPI.sendChatMessage(
 ---
 
 ### 2.5 Direct P2P Data Broadcasting (`Onicord.p2p` / `OnicordWidgetAPI.p2p`)
-For applications and collaborative widgets requiring direct peer-to-peer data exchange (real-time whiteboards, shared notes, synchronized state) without sending chat messages.
+For applications and collaborative widgets requiring direct, low-latency peer-to-peer data exchange (real-time whiteboards, shared dice, turn-based games, synchronized state) without sending visible chat messages. Requires the `p2p.network` permission in `manifest.json`.
+
+#### Automatic Scoping & Packet Isolation
+All data transmitted through `p2p.broadcast` is automatically scoped with the addon's `pluginId` and `widgetId`. This guarantees that packets from one addon will never interfere with, or be intercepted by, other addons in the same room.
 
 ```javascript
-// Broadcast raw P2P data packet to all connected room peers
-OnicordWidgetAPI.p2p.broadcast({
-  type: 'SYNC_STATE',
-  data: { text: 'Hello peers' }
+// 1. Broadcast any JavaScript object/data to all room peers
+window.OnicordWidgetAPI.p2p.broadcast({
+  type: 'DICE_ROLL_START',
+  authorName: 'Alex',
+  rolls: [4, 6],
+  total: 10,
+  timestamp: Date.now()
 });
 
-// Listen for incoming P2P data packets from other peers
-OnicordWidgetAPI.p2p.onMessage((data, senderPeerId) => {
-  console.log('P2P data received from', senderPeerId, ':', data);
+// 2. Listen for incoming P2P packets from peers in the room
+const unsubscribe = window.OnicordWidgetAPI.p2p.onMessage((data, senderPeerId) => {
+  if (data?.type === 'DICE_ROLL_START') {
+    renderRollAnimation(data.rolls, data.authorName);
+  }
 });
+```
+
+#### The Decentralized Initial State Handshake Pattern
+Because `storage` is isolated per user and per profile on their local devices, a peer who opens a room or widget for the first time starts with an empty local store. To achieve immediate real-time synchronization with active room members, all collaborative widgets should implement the standard **Request-Response Handshake Pattern**:
+
+```javascript
+// A. When widget initializes, request the current room state
+function requestRoomState() {
+  window.OnicordWidgetAPI?.p2p?.broadcast({
+    type: 'ROOM_STATE_REQUEST'
+  });
+}
+
+// B. In the onMessage listener:
+window.OnicordWidgetAPI.p2p.onMessage((data, senderPeerId) => {
+  if (data.type === 'ROOM_STATE_REQUEST') {
+    // If we have active configured state, respond to the room
+    if (state.configured) {
+      window.OnicordWidgetAPI.p2p.broadcast({
+        type: 'ROOM_STATE_RESPONSE',
+        state: state
+      });
+    }
+  } else if (data.type === 'ROOM_STATE_RESPONSE') {
+    // Merge or adopt remote state into local widget
+    applyRemoteState(data.state);
+  }
+});
+
+// Request state immediately on startup and retry after 1s if still waiting
+requestRoomState();
+setTimeout(requestRoomState, 1000);
 ```
 
 ---
 
-### 2.6 Plugin Island Sidebar Widgets (`Onicord.ui.registerPluginIslandWidget`)
-Inject compact status cards or control panels into the application right panel (Plugin Island).
+### 2.6 Plugin Island Widgets (`Onicord.ui.registerPluginIslandWidget`)
+The **Plugin Island** is Onicord's dedicated sidebar area situated on the right side of room channels (above the members list). It provides a persistent, interactive canvas for collaborative widgets, tools, and mini-games.
 
+#### Registering an Island Widget in `index.js`:
 ```javascript
-Onicord.ui.registerPluginIslandWidget({
-  id: 'poll-active-status',
-  title: 'Active Poll',
-  component: 'ActivePollWidget'
-});
+if (typeof Onicord !== "undefined" && Onicord.ui?.registerPluginIslandWidget) {
+  Onicord.ui.registerPluginIslandWidget({
+    id: "dice-island-widget",              // Unique widget identifier
+    title: "Dados",                        // Human-readable title
+    entryPoint: "widgets/dice_island.html",// HTML entry point inside addon directory
+    height: 275                            // Target height in pixels (default 255-280px)
+  });
+}
 ```
+
+#### Native Island Shell Features:
+- **Sandboxed Execution**: Runs in an isolated `iframe` with `sandbox="allow-scripts allow-same-origin"`.
+- **Automatic Carousel Navigation**: If a user has multiple island addons active, the Onicord host container automatically renders smooth pagination controls (chevron arrows and dot indicators) at the bottom. The addon only renders its own widget UI.
+- **Visual Design Guidelines**:
+  - Use `background: transparent;` on the `body` so the island container theme shines through.
+  - Do not use background containers darker than Onicord's island surface (`--bg-island` / `#16161c`).
+  - Use system typography (`font-family: "Roboto", system-ui, sans-serif;`).
+  - Rounded squircle buttons/containers (`border-radius: 16px - 20px;`) and smooth micro-animations.
 
 ---
 
@@ -396,5 +449,6 @@ The compiler will automatically:
 - `plugins/`: Directory containing compiled binary packages (`.onimod`) categorized by plugin ID.
 - `demo_dashboard_addon/`: Official demo source code for local and P2P collaborative Widgets Dashboard widgets.
 - `onicord-polls/`: Source code for the official Quick Polls addon (`/p`).
+- `onicord-dice/`: Source code for the official collaborative dice roller addon for the Addon Island with real-time P2P synchronization and `/roll` chat command.
 - `youtube-search/`: Source code for the official YouTube Search addon (`/y`).
 - `google-search/`: Source code for the official Google Search addon (`/g`).
