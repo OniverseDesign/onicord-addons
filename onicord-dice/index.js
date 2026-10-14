@@ -63,17 +63,18 @@ if (typeof Onicord !== "undefined" && Onicord.chat?.onCommand) {
 
     let critText = "";
     if (faces === 20 && count === 1) {
-      if (rolls[0] === 20) critText = " 🌟 **¡ÉXITO CRÍTICO (20)!**";
-      else if (rolls[0] === 1) critText = " 💀 **¡PIFIA NATURAL (1)!**";
+      if (rolls[0] === 20) critText = " [ÉXITO CRÍTICO (20)]";
+      else if (rolls[0] === 1) critText = " [PIFIA NATURAL (1)]";
     }
 
     let resultMsg = "";
+    const specStr = count === 1 ? `d${faces}` : `${count}d${faces}`;
     if (count === 1) {
-      resultMsg = `🎲 **${authorName}** lanzó **d${faces}** ➜ **${total}**${critText}`;
+      resultMsg = `**${authorName}** lanzó **d${faces}** -> **${total}**${critText}`;
     } else {
       const rollsStr = `[${rolls.join(", ")}]`;
       const modStr = modifier !== 0 ? ` ${modifier > 0 ? "+" : ""}${modifier}` : "";
-      resultMsg = `🎲 **${authorName}** lanzó **${count}d${faces}**: ${rollsStr}${modStr} ➜ Total: **${total}**${critText}`;
+      resultMsg = `**${authorName}** lanzó **${count}d${faces}**: ${rollsStr}${modStr} -> Total: **${total}**${critText}`;
     }
 
     // Publicar en el chat de la sala
@@ -91,6 +92,7 @@ if (typeof Onicord !== "undefined" && Onicord.chat?.onCommand) {
         faces,
         rolls,
         total,
+        summary: `${authorName} lanzó ${specStr} -> ${total}`,
         timestamp: Date.now(),
       });
     }

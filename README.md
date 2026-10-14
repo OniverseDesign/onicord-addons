@@ -183,7 +183,43 @@ if (typeof Onicord !== "undefined" && Onicord.ui?.registerPluginIslandWidget) {
 
 #### Native Island Shell Features:
 - **Sandboxed Execution**: Runs in an isolated `iframe` with `sandbox="allow-scripts allow-same-origin"`.
-- **Automatic Carousel Navigation**: If a user has multiple island addons active, the Onicord host container automatically renders smooth pagination controls (chevron arrows and dot indicators) at the bottom. The addon only renders its own widget UI.
+- **Dynamic Capsule Mode (56px Pill)**:
+  - **Initial Collapsed State**: Upon entering any room or server, the Island initiates in compact 56px Capsule Mode by default to preserve maximum vertical space for the room members list.
+  - **Auto-Contraction Timer**: When expanded, it automatically contracts back to the 56px capsule banner after **2 minutes of inactivity**.
+  - **Capsule Layout**: Features the addon's circular avatar on the left, the addon name with Onicord's official `smart_toy` addon icon (matching chat and room commands) and timestamp on the top line, and a live text summary of the latest room update on the bottom line (e.g. `Oniverse lanzó d6 -> 6`).
+  - **Zero Emojis**: Official and third-party addons must strictly avoid emojis in status text or summaries, using clean typography and Material Icons instead.
+- **Hover to Peek**: Hovering over the capsule temporarily expands it to full height (`275px`) for quick inspection. Moving the mouse away without clicking collapses it back down smoothly.
+- **Click to Pin (2-minute timer)**: Clicking anywhere on the capsule pins it in full expanded mode. Every user interaction or dice roll resets the 2-minute countdown timer.
+- **Event-Driven Auto-Expansion & Smart Addon Switching**: Whenever any room peer broadcasts an event or updates state on an addon:
+  - If multiple addons are installed and an update belongs to an inactive addon (e.g., Addon #2 while currently viewing Addon #1), the Island automatically switches to that addon in the carousel.
+  - The capsule immediately updates its icon, title, timestamp, and summary.
+  - The Island springs open to full size so all members witness the action in real-time, restarting the 2-minute timer.
+- **Persistent Multi-Addon State**: All active island addons remain mounted in the background (using CSS visibility switching), preserving their internal state, timers, and P2P network listeners without reloading when switching between carousel items.
+- **Automatic Carousel Navigation**: If a user has multiple island addons active, the Onicord host container automatically renders smooth pagination controls (chevron arrows and dot indicators) at the bottom.
+
+#### Communicating Updates to the Island Capsule:
+Addons can update the status text displayed in the 56px capsule and trigger the Island to automatically spring open using two generic mechanisms:
+
+1. **Direct Bridge Call (`window.OnicordWidgetAPI.island.setSummary`)**:
+   ```javascript
+   // Set or update the status description shown in the capsule (strictly zero emojis)
+   window.OnicordWidgetAPI.island.setSummary("Alex tiró una carta especial");
+   ```
+
+2. **P2P Broadcast Field (`data.summary` or `data.description`)**:
+   When broadcasting room events via `window.OnicordWidgetAPI.p2p.broadcast`, include a `summary` or `description` property:
+   ```javascript
+   window.OnicordWidgetAPI.p2p.broadcast({
+     type: "GAME_ACTION",
+     summary: "Alex avanzó 3 casillas", // Intercepted automatically by Onicord Island
+     timestamp: Date.now()
+   });
+   ```
+   Whenever the `PluginIsland` container intercepts a P2P packet with a `summary` or `description` property (locally or from a remote peer), it automatically:
+   - Updates the capsule's bottom status line text.
+   - Updates the timestamp in the capsule header.
+   - Automatically expands and pins the island for **2 minutes** so all room participants see the activity live.
+
 - **Visual Design Guidelines**:
   - Use `background: transparent;` on the `body` so the island container theme shines through.
   - Do not use background containers darker than Onicord's island surface (`--bg-island` / `#16161c`).
