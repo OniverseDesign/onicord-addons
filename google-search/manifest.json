@@ -2,7 +2,8 @@
   "id": "onicord-google-search",
   "name": "Google Search",
   "icon": "assets/icon.png",
-  "version": "1.1.0",
+  "version": "0.1.0",
+  "scope": "server",
   "author": "Oniverse",
   "description": "Search Google & AI and post formatted web results directly into chat.",
   "locales": {

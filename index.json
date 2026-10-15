@@ -1,11 +1,12 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-10-14T21:32:33.042Z",
+  "updatedAt": "2026-10-15T18:19:50.181Z",
   "plugins": [
     {
       "id": "com.oniverse.demo_dashboard_addon",
       "name": "Demo Widgets Addon",
-      "version": "1.0.0",
+      "version": "0.1.0",
+      "scope": "hybrid",
       "author": "Oniverse Team",
       "description": "Demostración de widgets extensibles locales y colaborativos P2P para el Panel de Widgets.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/demo_dashboard_addon/assets/icon.png",
@@ -14,7 +15,8 @@
     {
       "id": "onicord-google-search",
       "name": "Google Search",
-      "version": "1.1.0",
+      "version": "0.1.0",
+      "scope": "server",
       "author": "Oniverse",
       "description": "Search Google & AI and post formatted web results directly into chat.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/google-search/assets/icon.png",
@@ -34,7 +36,8 @@
     {
       "id": "onicord-dice",
       "name": "Dices",
-      "version": "1.0.0",
+      "version": "0.1.0",
+      "scope": "server",
       "author": "Oniverse",
       "description": "Real-time configurable dice roller for the room.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/onicord-dice/assets/icon.png",
@@ -63,7 +66,8 @@
     {
       "id": "onicord-polls",
       "name": "Quick Polls",
-      "version": "1.0.0",
+      "version": "0.1.0",
+      "scope": "server",
       "author": "Oniverse",
       "description": "Create real-time interactive polls in chat using the /p command.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/onicord-polls/assets/icon.png",
@@ -83,7 +87,8 @@
     {
       "id": "onicord-youtube-search",
       "name": "YouTube Search",
-      "version": "1.0.0",
+      "version": "0.1.0",
+      "scope": "server",
       "author": "Oniverse",
       "description": "Search YouTube videos directly from chat using the /y command.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/youtube-search/assets/icon.png",

@@ -2,7 +2,8 @@
   "id": "onicord-polls",
   "name": "Quick Polls",
   "icon": "assets/icon.png",
-  "version": "1.0.0",
+  "version": "0.1.0",
+  "scope": "server",
   "author": "Oniverse",
   "description": "Create real-time interactive polls in chat using the /p command.",
   "locales": {

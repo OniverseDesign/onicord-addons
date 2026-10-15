@@ -1,7 +1,8 @@
 {
   "id": "com.oniverse.demo_dashboard_addon",
   "name": "Demo Widgets Addon",
-  "version": "1.0.0",
+  "version": "0.1.0",
+  "scope": "hybrid",
   "description": "Demostración de widgets extensibles locales y colaborativos P2P para el Panel de Widgets.",
   "author": "Oniverse Team",
   "main": "index.js",

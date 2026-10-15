@@ -96,6 +96,7 @@ function buildAddonsRepo() {
           id: pluginId,
           name: manifest.name,
           version: manifest.version,
+          scope: manifest.scope || "client",
           author: manifest.author || "Oniverse",
           description: manifest.description || "",
           icon: `https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/${entry.name}/${iconPath}`,

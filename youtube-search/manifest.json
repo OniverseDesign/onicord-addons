@@ -2,7 +2,8 @@
   "id": "onicord-youtube-search",
   "name": "YouTube Search",
   "icon": "assets/icon.png",
-  "version": "1.0.0",
+  "version": "0.1.0",
+  "scope": "server",
   "author": "Oniverse",
   "description": "Search YouTube videos directly from chat using the /y command.",
   "locales": {

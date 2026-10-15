@@ -1,6 +1,6 @@
 # Onicord Addons Development Guide & Technical Specification
 
-Welcome to the official developer documentation for Onicord addons, plugins, and Dashboard widgets. This guide details the sandboxing architecture, interaction vectors, Widgets Dashboard specifications, unified permission schemas, and instructions for compiling and packaging addons into `.onimod` bundles.
+Welcome to the official developer documentation for Onicord addons, plugins, and Dashboard widgets. This guide details the sandboxing architecture, addon scope classification taxonomy, interaction vectors, Widgets Dashboard specifications, unified permission schemas, and instructions for compiling and packaging addons into `.onimod` bundles.
 
 ---
 
@@ -15,12 +15,49 @@ Onicord plugins operate through a secure, decentralized architecture:
 
 ---
 
-## 2. Plugin Interaction Vectors
+## 2. Addon Scope Classification & Lifecycle Model
+
+To ensure clarity for developers and end-users, Onicord employs a strict **Addon Scope Taxonomy**. Every addon explicitly declares its intended scope of execution in `manifest.json`.
+
+### 2.1 Scope Categories
+
+| Scope | Identifier | Visual UI Indicator | Purpose & Target Environment | Typical Capabilities |
+| :--- | :---: | :---: | :--- | :--- |
+| **Server / Collaborative** | `"server"` | Blue / Sapphire Badge (`groups` icon) | Designed exclusively for P2P servers and shared channels. Requires activation by a server host or administrator in room settings. | Slash commands (`/p`, `/roll`, `/g`), Plugin Island sidebar cards, room-wide P2P broadcasts, chat embeds. |
+| **Personal / Dashboard** | `"client"` | Purple / Lavender Badge (`dashboard` icon) | Runs 100% on the user's local device without needing an active room or server. Embeds interactive Bento widgets directly into the home screen. | Pomodoro timers, calculators, quick notes, world clocks, local hardware monitors. |
+| **Hybrid** | `"hybrid"` | Amber / Gold Badge (`hub` icon) | Combines personal Bento Dashboard widgets with collaborative server and room tools. | P2P music players, synchronized boards with room export, collaborative note-taking tools. |
+
+### 2.2 Intelligent Scope Detection & Fallbacks
+If an existing or legacy addon omits the explicit `"scope"` field in `manifest.json`, the Onicord engine analyzes its capabilities dynamically:
+1. If it defines both `dashboardWidgets` AND server permissions (`ui.plugin_island`, `p2p.network`, or chat commands) -> Detected as `"hybrid"`.
+2. If it defines chat commands or collaborative permissions (`p2p.network`, `ui.plugin_island`, `chat.send`, `chat.read`) -> Detected as `"server"`.
+3. If it only provides `dashboardWidgets` or `ui.custom_widget` -> Detected as `"client"`.
+4. Fallback default: `"client"`.
+
+### 2.3 Two-Level Addon Lifecycle Architecture
+
+Onicord completely decouples physical file management from room configuration:
+
+1. **User / Global Level (`AppSettingsModal` > Complementos)**:
+   - Central Store: Browse, download, and update addons directly from GitHub.
+   - Physical Disk Management: Addon files reside in `<userData>/plugins/`. Deleting an addon here uninstalls its files from the computer.
+   - Local Package Imports: Import third-party `.onimod` archives or package local development folders.
+   - Filtering: Filter installed and remote catalog addons by scope (`Todos`, `Servidor`, `Personal`, `Híbrido`).
+
+2. **Server / Room Level (`ServerSettingsModal` > Complementos)**:
+   - Pure Room Configurator: Zero network requests to GitHub and instant modal opening.
+   - Local Binding: Instantly link or unlink addons already present in the user's local library.
+   - Safe Unlinking: Unlinking an addon removes it from `server.plugins` without deleting its physical files from the computer.
+   - Room-Specific Preferences: Configure per-room aliases, prefixes, and widget visibility.
+
+---
+
+## 3. Plugin Interaction Vectors
 
 Plugins have 9 primary methods to interact with the application, chat, user interface, Widgets Dashboard, and P2P network:
 
-### 2.1 Slash Command Registration (`Onicord.chat.onCommand`)
-Allows plugins to register custom chat commands (e.g., `/p`, `/y`, `/g`) that users can execute from the chat input.
+### 3.1 Slash Command Registration (`Onicord.chat.onCommand`)
+Allows plugins to register custom chat commands (e.g., `/p`, `/y`, `/g`, `/roll`) that users can execute from the chat input.
 
 ```javascript
 // Register a slash command inside the V8 Sandbox
@@ -32,7 +69,7 @@ Onicord.chat.onCommand('p', (args) => {
 
 ---
 
-### 2.2 Widgets Dashboard Widgets (`dashboardWidgets`)
+### 3.2 Widgets Dashboard Widgets (`dashboardWidgets`)
 Plugins can expose local or collaborative P2P widgets that integrate seamlessly into Onicord's Widgets Dashboard.
 
 ```json
@@ -61,7 +98,7 @@ window.addEventListener("onicord:widget-ready", async () => {
 
 ---
 
-### 2.3 Chat Messages & Interactive Cards (`[PLUGIN_EMBED]`)
+### 3.3 Chat Messages & Interactive Cards (`[PLUGIN_EMBED]`)
 Plugins can publish chat messages under their official addon identity (`isComplement: true`). To render rich interactive cards (polls, search results, dice rolls), use the `[PLUGIN_EMBED]` payload format.
 
 ```javascript
@@ -86,7 +123,7 @@ Onicord.chat.sendMessage({
 
 ---
 
-### 2.4 Real-Time User Interactions (`[PLUGIN_ACTION]`)
+### 3.4 Real-Time User Interactions (`[PLUGIN_ACTION]`)
 Capture user actions on plugin cards (e.g., clicking a poll option or button) and transmit them to all room participants without polluting the visible chat history.
 
 ```javascript
@@ -108,7 +145,7 @@ window.electronAPI.sendChatMessage(
 
 ---
 
-### 2.5 Direct P2P Data Broadcasting (`Onicord.p2p` / `OnicordWidgetAPI.p2p`)
+### 3.5 Direct P2P Data Broadcasting (`Onicord.p2p` / `OnicordWidgetAPI.p2p`)
 For applications and collaborative widgets requiring direct, low-latency peer-to-peer data exchange (real-time whiteboards, shared dice, turn-based games, synchronized state) without sending visible chat messages. Requires the `p2p.network` permission in `manifest.json`.
 
 #### Automatic Scoping & Packet Isolation
@@ -166,7 +203,7 @@ setTimeout(requestRoomState, 1000);
 
 ---
 
-### 2.6 Plugin Island Widgets (`Onicord.ui.registerPluginIslandWidget`)
+### 3.6 Plugin Island Widgets (`Onicord.ui.registerPluginIslandWidget`)
 The **Plugin Island** is Onicord's dedicated sidebar area situated on the right side of room channels (above the members list). It provides a persistent, interactive canvas for collaborative widgets, tools, and mini-games.
 
 #### Registering an Island Widget in `index.js`:
@@ -228,7 +265,7 @@ Addons can update the status text displayed in the 56px capsule and trigger the 
 
 ---
 
-### 2.7 Persistent Local Storage (`Onicord.storage` / `OnicordWidgetAPI.storage`)
+### 3.7 Persistent Local Storage (`Onicord.storage` / `OnicordWidgetAPI.storage`)
 Store and retrieve persistent key-value JSON data scoped to the plugin. Requires the `storage` permission in `manifest.json`.
 
 ```javascript
@@ -241,7 +278,7 @@ const data = await OnicordWidgetAPI.storage.get("settings_key");
 
 ---
 
-### 2.8 External Network Requests (`fetch`)
+### 3.8 External Network Requests (`fetch`)
 Perform HTTP requests to external REST APIs. Requires the `network.outbound` permission in `manifest.json`.
 
 ```javascript
@@ -255,7 +292,7 @@ fetch('https://api.example.com/data')
 
 ---
 
-### 2.9 Purging Plugin Messages (`Onicord.chat.clearPluginMessages`)
+### 3.9 Purging Plugin Messages (`Onicord.chat.clearPluginMessages`)
 Allows a plugin to programmatically purge or clear its previously sent messages in the current room.
 
 ```javascript
@@ -264,11 +301,11 @@ Onicord.chat.clearPluginMessages();
 
 ---
 
-## 3. Widgets Dashboard Specification
+## 4. Widgets Dashboard Specification
 
 Dashboard widgets extend Onicord's main grid layout. All dashboard widgets are automatically formatted within Onicord's standardized design system.
 
-### 3.1 Layout & Visual Container Standard (`onicord-widget-shell`)
+### 4.1 Layout & Visual Container Standard (`onicord-widget-shell`)
 Every plugin widget is rendered inside the official shell container:
 
 * **Container Query Units**: Root element uses `containerType: "inline-size"`. Font sizing uses `clamp(0.6rem, 3.5cqi, 0.8rem)` to dynamically scale with card resizing.
@@ -286,7 +323,7 @@ OnicordWidgetAPI.ui.setBackground({
 
 ---
 
-## 4. Unified Granular Permission System (`manifest.json`)
+## 5. Unified Granular Permission System (`manifest.json`)
 
 Every plugin and widget must explicitly declare its required permissions in `manifest.json`. The application gatekeeper blocks any API call for ungranted permissions.
 
@@ -306,9 +343,9 @@ Every plugin and widget must explicitly declare its required permissions in `man
 
 ---
 
-## 5. Addon Creation, Structure & Compilation (`.onimod`)
+## 6. Addon Creation, Structure & Compilation (`.onimod`)
 
-### 5.1 Directory Structure
+### 6.1 Directory Structure
 Create a directory inside `addons/` matching your plugin ID:
 
 ```text
@@ -322,17 +359,18 @@ my-addon/
     └── icon.png
 ```
 
-### 5.2 Complete `manifest.json` Example
+### 6.2 Complete `manifest.json` Schema & Example
 
 ```json
 {
-  "id": "com.oniverse.demo_addon",
-  "name": "Demo Addon & Widgets",
-  "version": "1.0.0",
+  "id": "com.oniverse.demo_dashboard_addon",
+  "name": "Demo Widgets Addon",
+  "version": "0.1.0",
+  "scope": "hybrid",
   "author": "Oniverse Team",
   "description": "Custom dashboard widgets and slash commands",
   "main": "index.js",
-  "icon": "extension",
+  "icon": "assets/icon.png",
   "permissions": [
     "user.profile",
     "server.info",
@@ -368,7 +406,7 @@ my-addon/
 
 ---
 
-### 5.3 Complete Widget HTML Example (`widgets/pomodoro.html`)
+### 6.3 Complete Widget HTML Example (`widgets/pomodoro.html`)
 
 ```html
 <!DOCTYPE html>
@@ -464,7 +502,7 @@ my-addon/
 
 ---
 
-### 5.4 Package Compiler (`node build.js`)
+### 6.4 Package Compiler (`node build.js`)
 To validate, package, and update the central catalog (`index.json`), run the compiler script inside the `addons/` directory:
 
 ```bash
@@ -472,19 +510,19 @@ node build.js
 ```
 
 The compiler will automatically:
-1. Validate manifest syntax and source code integrity.
+1. Validate manifest syntax, scope metadata, and source code integrity.
 2. Generate binary bundles inside `plugins/<plugin-id>/package.onimod`.
-3. Update versioning and catalog entries in `index.json`.
+3. Update versioning and catalog entries with scope badges in `index.json`.
 
 ---
 
-## 6. Addon Repository Structure
+## 7. Addon Repository Structure & Official Packages
 
-- `index.json`: Central catalog registry listing available downloadable addons.
+- `index.json`: Central catalog registry listing available downloadable addons and their scopes.
 - `build.js`: Official compiler script that packages source directories into `.onimod` bundles.
 - `plugins/`: Directory containing compiled binary packages (`.onimod`) categorized by plugin ID.
-- `demo_dashboard_addon/`: Official demo source code for local and P2P collaborative Widgets Dashboard widgets.
-- `onicord-polls/`: Source code for the official Quick Polls addon (`/p`).
-- `onicord-dice/`: Source code for the official collaborative dice roller addon for the Addon Island with real-time P2P synchronization and `/roll` chat command.
-- `youtube-search/`: Source code for the official YouTube Search addon (`/y`).
-- `google-search/`: Source code for the official Google Search addon (`/g`).
+- `demo_dashboard_addon/`: Official demo source code for local and P2P collaborative Bento widgets (`scope: "hybrid"`, version `0.1.0`).
+- `onicord-polls/`: Official Quick Polls chat addon (`/p`, `scope: "server"`, version `0.1.0`).
+- `onicord-dice/`: Official collaborative dice roller addon for the Addon Island with real-time P2P synchronization and `/roll` command (`scope: "server"`, version `0.1.0`).
+- `youtube-search/`: Official YouTube Search addon (`/y`, `scope: "server"`, version `0.1.0`).
+- `google-search/`: Official Google Search addon (`/g`, `scope: "server"`, version `0.1.0`).
