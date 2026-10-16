@@ -23,7 +23,7 @@ function packFolder(folderPath) {
       const fullPath = path.join(currentDir, entry.name);
       const relPath = path.relative(baseDir, fullPath).replace(/\\/g, "/");
 
-      if (entry.name === "manifest.json" || entry.name.startsWith(".") || entry.name.endsWith(".onimod") || entry.name === "node_modules") continue;
+      if (entry.name === "manifest.json" || entry.name.startsWith(".") || entry.name.endsWith(".onipkg") || entry.name.endsWith(".onimod") || entry.name === "node_modules") continue;
 
       if (entry.isDirectory()) {
         readDirRecursive(fullPath, baseDir);
@@ -48,6 +48,8 @@ function packFolder(folderPath) {
   readDirRecursive(folderPath, folderPath);
 
   const packageData = {
+    formatVersion: 1,
+    type: "plugin",
     version: 1,
     manifest,
     files,
@@ -76,7 +78,10 @@ function buildAddonsRepo() {
         const targetIdDir = path.join(pluginsDir, pluginId);
         if (!fs.existsSync(targetIdDir)) fs.mkdirSync(targetIdDir, { recursive: true });
         
-        fs.writeFileSync(path.join(targetIdDir, "package.onimod"), compressed);
+        fs.writeFileSync(path.join(targetIdDir, "package.onipkg"), compressed);
+        // Clean legacy package if exists
+        const legacyPath = path.join(targetIdDir, "package.onimod");
+        if (fs.existsSync(legacyPath)) fs.unlinkSync(legacyPath);
         fs.writeFileSync(path.join(targetIdDir, "manifest.json"), JSON.stringify(manifest, null, 2));
 
         // Copy assets folder if exists
@@ -100,7 +105,7 @@ function buildAddonsRepo() {
           author: manifest.author || "Oniverse",
           description: manifest.description || "",
           icon: `https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/${entry.name}/${iconPath}`,
-          downloadUrl: `https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/${pluginId}/package.onimod`
+          downloadUrl: `https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/${pluginId}/package.onipkg`
         };
 
         if (manifest.locales) {
@@ -109,7 +114,7 @@ function buildAddonsRepo() {
 
         catalog.push(catalogItem);
 
-        console.log(`[OK] Addon packaged: ${manifest.name} (ID: ${pluginId}) -> plugins/${pluginId}/package.onimod`);
+        console.log(`[OK] Addon packaged: ${manifest.name} (ID: ${pluginId}) -> plugins/${pluginId}/package.onipkg`);
       }
     }
   }

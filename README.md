@@ -1,6 +1,40 @@
-# Onicord Addons Development Guide & Technical Specification
+<div align="center">
 
-Welcome to the official developer documentation for Onicord addons, plugins, and Dashboard widgets. This guide details the sandboxing architecture, addon scope classification taxonomy, interaction vectors, Widgets Dashboard specifications, unified permission schemas, and instructions for compiling and packaging addons into `.onimod` bundles.
+  <h1>Onicord Addons</h1>
+
+  <p>
+    <strong>Official developer documentation, technical specifications, and open-source addon registry for Onicord.</strong><br/>
+    <em>Build, test, and distribute decentralized extensions, Bento Dashboard widgets, and chat slash commands formatted as <code>.onipkg</code> bundles.</em>
+  </p>
+
+  <p>
+    <a href="https://github.com/OniverseDesign/onicord">
+      <img src="https://img.shields.io/badge/App-Onicord-cba6f7?style=for-the-badge&logo=github&logoColor=white" alt="Onicord App" />
+    </a>
+    <a href="https://github.com/OniverseDesign/onicord-stickers">
+      <img src="https://img.shields.io/badge/Ecosystem-Stickers-fab387?style=for-the-badge&logo=github&logoColor=white" alt="Onicord Stickers" />
+    </a>
+    <a href="https://github.com/OniverseDesign/onicord/blob/main/LICENSE">
+      <img src="https://img.shields.io/badge/License-GPL%20v3-74c7ec.svg?style=for-the-badge" alt="License: GPL-3.0" />
+    </a>
+    <img src="https://img.shields.io/badge/Format-.onipkg-a6e3a1?style=for-the-badge" alt="Format: .onipkg" />
+  </p>
+
+  <h4>
+    <a href="https://github.com/OniverseDesign/onicord">Main Application</a> ·
+    <a href="#1-architecture--sandboxing-overview">Architecture</a> ·
+    <a href="#2-addon-scope-classification--lifecycle-model">Scopes</a> ·
+    <a href="#3-plugin-interaction-vectors">Vectors</a> ·
+    <a href="#6-addon-creation-structure--compilation-onipkg">Packaging (.onipkg)</a> ·
+    <a href="#8-distribution-and-publishing-workflows">Publishing</a> ·
+    <a href="index.json">Catalog (index.json)</a>
+  </h4>
+
+</div>
+
+---
+
+Welcome to the official developer documentation for Onicord addons, plugins, and Dashboard widgets. This guide details the sandboxing architecture, addon scope classification taxonomy, interaction vectors, Widgets Dashboard specifications, unified permission schemas, and instructions for compiling and packaging addons into `.onipkg` bundles.
 
 ---
 
@@ -41,7 +75,7 @@ Onicord completely decouples physical file management from room configuration:
 1. **User / Global Level (`AppSettingsModal` > Complementos)**:
    - Central Store: Browse, download, and update addons directly from GitHub.
    - Physical Disk Management: Addon files reside in `<userData>/plugins/`. Deleting an addon here uninstalls its files from the computer.
-   - Local Package Imports: Import third-party `.onimod` archives or package local development folders.
+   - Local Package Imports: Import third-party `.onipkg` archives or package local development folders.
    - Filtering: Filter installed and remote catalog addons by scope (`Todos`, `Servidor`, `Personal`, `Híbrido`).
 
 2. **Server / Room Level (`ServerSettingsModal` > Complementos)**:
@@ -343,7 +377,9 @@ Every plugin and widget must explicitly declare its required permissions in `man
 
 ---
 
-## 6. Addon Creation, Structure & Compilation (`.onimod`)
+## 6. Addon Creation, Structure & Compilation (`.onipkg`)
+
+> **Development Model**: Addon source code (JavaScript, HTML, CSS, JSON) is authored externally in a code editor or IDE. However, once your addon folder is prepared with its `manifest.json`, Onicord allows you to package it into a `.onipkg` bundle directly from inside the desktop app (**Settings > Addons > Package addon folder**) or via the command-line compiler script (`node build.js`).
 
 ### 6.1 Directory Structure
 Create a directory inside `addons/` matching your plugin ID:
@@ -502,8 +538,18 @@ my-addon/
 
 ---
 
-### 6.4 Package Compiler (`node build.js`)
-To validate, package, and update the central catalog (`index.json`), run the compiler script inside the `addons/` directory:
+### 6.4 Packaging Options (`.onipkg`)
+
+Once your addon files are written, you can package your development folder into a `.onipkg` bundle using either the in-app graphical tool or the command-line compiler:
+
+#### Method A: In-App Packaging Tool (Recommended for Local Dev)
+1. Open **Onicord** and navigate to **Settings > Addons**.
+2. Click the **"Package addon folder"** button (`Empaquetar carpeta de complemento`).
+3. Select your local addon directory (must contain a valid `manifest.json`).
+4. Onicord will validate your manifest, bundle and compress all source files, and generate `<plugin-id>.onipkg` directly inside the selected folder.
+
+#### Method B: Command-Line Compiler (`node build.js`)
+To validate, package, and update the central catalog (`index.json`) for multiple addons or official repository submissions:
 
 ```bash
 node build.js
@@ -511,7 +557,7 @@ node build.js
 
 The compiler will automatically:
 1. Validate manifest syntax, scope metadata, and source code integrity.
-2. Generate binary bundles inside `plugins/<plugin-id>/package.onimod`.
+2. Generate binary bundles inside `plugins/<plugin-id>/package.onipkg`.
 3. Update versioning and catalog entries with scope badges in `index.json`.
 
 ---
@@ -519,10 +565,88 @@ The compiler will automatically:
 ## 7. Addon Repository Structure & Official Packages
 
 - `index.json`: Central catalog registry listing available downloadable addons and their scopes.
-- `build.js`: Official compiler script that packages source directories into `.onimod` bundles.
-- `plugins/`: Directory containing compiled binary packages (`.onimod`) categorized by plugin ID.
+- `build.js`: Official compiler script that packages source directories into `.onipkg` bundles.
+- `plugins/`: Directory containing compiled binary packages (`.onipkg`) categorized by plugin ID.
 - `demo_dashboard_addon/`: Official demo source code for local and P2P collaborative Bento widgets (`scope: "hybrid"`, version `0.1.0`).
 - `onicord-polls/`: Official Quick Polls chat addon (`/p`, `scope: "server"`, version `0.1.0`).
 - `onicord-dice/`: Official collaborative dice roller addon for the Addon Island with real-time P2P synchronization and `/roll` command (`scope: "server"`, version `0.1.0`).
 - `youtube-search/`: Official YouTube Search addon (`/y`, `scope: "server"`, version `0.1.0`).
 - `google-search/`: Official Google Search addon (`/g`, `scope: "server"`, version `0.1.0`).
+
+---
+
+## 8. Distribution and Publishing Workflows
+
+Developers have two distinct avenues for distributing Onicord addons: **Direct Distribution & Self-Hosting** (decentralized, immediate, zero approval needed) and **Publishing to the Official In-App Catalog** (via GitHub Pull Request and security review).
+
+---
+
+### Option 1: Direct Distribution & Self-Hosting (Zero Approval Needed)
+
+Because Onicord is an open, decentralized platform, developers are never required to seek permission or approval to distribute addons:
+
+1. **Compile the Package**: Package your addon directory into `.onipkg` using either the in-app tool (**Settings > Addons > Package addon folder**) or via the CLI compiler (`node build.js`).
+2. **Distribute Freely**:
+   - **Direct In-Chat Transfer**: Send the `package.onipkg` file directly into any Onicord chat channel or room. Peers can install it directly into their library with a single click.
+   - **Host Independently**: Host the `.onipkg` on your personal GitHub Releases, website, or community discord/forums.
+3. **User Installation**:
+   - End users install third-party addons by opening **Settings > Addons > Import .onipkg** or dragging and dropping the `.onipkg` file into the Onicord app window.
+   - Once imported, users can activate the addon globally or link it to specific rooms.
+
+---
+
+### Option 2: Publishing to the Official In-App Store Catalog (Fork & Pull Request)
+
+To make your addon discoverable by the entire Onicord community directly inside the in-app Store (**Settings > Addons**):
+
+Third-party developers do not have direct push access to `OniverseDesign/onicord-addons`. All submissions must be submitted through GitHub Forks and Pull Requests.
+
+#### Step 1: Fork and Clone the Repository
+1. Fork the [OniverseDesign/onicord-addons](https://github.com/OniverseDesign/onicord-addons) repository on GitHub.
+2. Clone your fork locally:
+   ```bash
+   git clone https://github.com/<your-username>/onicord-addons.git
+   cd onicord-addons
+   ```
+
+#### Step 2: Add Your Addon Source Directory
+Create your addon directory in the root of the repository matching your addon ID (e.g., `my-custom-addon/`):
+```text
+my-custom-addon/
+├── manifest.json
+├── index.js
+├── widgets/
+│   └── main.html
+└── assets/
+    └── icon.png
+```
+
+#### Step 3: Run the Catalog Compiler
+Execute the build script:
+```bash
+node build.js
+```
+
+The compiler will automatically:
+1. Validate manifest syntax, scope metadata, and declared permissions.
+2. Package the source directory into a compressed `.onipkg` bundle at `plugins/<plugin-id>/package.onipkg`.
+3. Extract and register metadata, version, scope badges, and repository paths in `index.json`.
+
+#### Step 4: Submit a Pull Request
+1. Commit your changes:
+   ```bash
+   git add .
+   git commit -m "Add my-custom-addon to official catalog"
+   git push origin main
+   ```
+2. Open a Pull Request from your fork against `OniverseDesign/onicord-addons:main`.
+
+#### Security & Sandbox Review Process
+Because addons execute JavaScript code within user clients, all submissions to the official catalog undergo a thorough security audit by the Oniverse core maintainers:
+
+- **Permission Principle of Least Privilege**: Addons must only request permissions strictly required for their functionality. Requests for unnecessary sensitive permissions (`audio.state`, `user.profile`, `network.outbound`) will be flagged for justification.
+- **V8 Sandbox Integrity**: Scripts must run safely inside Onicord's isolated V8 `vm` sandbox (`pluginSandboxService.cjs`). Any attempts to bypass sandboxing, probe Node.js internals, access forbidden file system paths, or spawn processes will cause immediate rejection.
+- **Code Transparency & Maintainability**: Source code must be readable, well-structured, and unobfuscated. Minified bundles without verifiable original sources are prohibited.
+- **Network & P2P Etiquette**: Addons utilizing `p2p.broadcast` must handle data cleanly, adhere to message scoping, avoid high-frequency flooding, and implement the standard state-handshake protocol.
+
+Once reviewed and merged by a maintainer, your addon is automatically listed in the in-app Store for all Onicord users.

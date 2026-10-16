@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-10-15T18:19:50.181Z",
+  "updatedAt": "2026-10-16T15:36:41.210Z",
   "plugins": [
     {
       "id": "com.oniverse.demo_dashboard_addon",
@@ -10,7 +10,7 @@
       "author": "Oniverse Team",
       "description": "Demostración de widgets extensibles locales y colaborativos P2P para el Panel de Widgets.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/demo_dashboard_addon/assets/icon.png",
-      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/com.oniverse.demo_dashboard_addon/package.onimod"
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/com.oniverse.demo_dashboard_addon/package.onipkg"
     },
     {
       "id": "onicord-google-search",
@@ -20,7 +20,7 @@
       "author": "Oniverse",
       "description": "Search Google & AI and post formatted web results directly into chat.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/google-search/assets/icon.png",
-      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-google-search/package.onimod",
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-google-search/package.onipkg",
       "locales": {
         "es": {
           "name": "Búsqueda en Google",
@@ -41,7 +41,7 @@
       "author": "Oniverse",
       "description": "Real-time configurable dice roller for the room.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/onicord-dice/assets/icon.png",
-      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-dice/package.onimod",
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-dice/package.onipkg",
       "locales": {
         "es": {
           "name": "Dados",
@@ -71,7 +71,7 @@
       "author": "Oniverse",
       "description": "Create real-time interactive polls in chat using the /p command.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/onicord-polls/assets/icon.png",
-      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-polls/package.onimod",
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-polls/package.onipkg",
       "locales": {
         "es": {
           "name": "Encuestas Rápidas",
@@ -92,7 +92,7 @@
       "author": "Oniverse",
       "description": "Search YouTube videos directly from chat using the /y command.",
       "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/youtube-search/assets/icon.png",
-      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-youtube-search/package.onimod",
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-youtube-search/package.onipkg",
       "locales": {
         "es": {
           "name": "Búsqueda en YouTube",
