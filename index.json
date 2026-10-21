@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-10-16T17:41:53.496Z",
+  "updatedAt": "2026-10-21T01:41:17.111Z",
   "plugins": [
     {
       "id": "com.oniverse.demo_dashboard_addon",
@@ -28,6 +28,36 @@
           "commands": {
             "/g": {
               "description": "Busca en la web o limpia el historial (/g clear)."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "onicord-arcade",
+      "name": "Arcade",
+      "version": "0.1.0",
+      "scope": "hybrid",
+      "author": "Oniverse",
+      "description": "Biblioteca de juegos web clásicos y porteados con multijugador integrado, salas cooperativas y sincronización de perfiles.",
+      "icon": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/onicord-arcade/assets/icon.png",
+      "downloadUrl": "https://raw.githubusercontent.com/OniverseDesign/onicord-addons/main/plugins/onicord-arcade/package.onipkg",
+      "locales": {
+        "es": {
+          "name": "Arcade",
+          "description": "Biblioteca de juegos web clásicos y porteados con multijugador integrado, salas cooperativas y sincronización de perfiles.",
+          "commands": {
+            "/arcade": {
+              "description": "Abre la biblioteca de juegos Arcade."
+            }
+          }
+        },
+        "en": {
+          "name": "Arcade",
+          "description": "Classic and web-ported games library with integrated multiplayer, coop rooms and profile syncing.",
+          "commands": {
+            "/arcade": {
+              "description": "Open Arcade games library."
             }
           }
         }

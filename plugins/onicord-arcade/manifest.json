@@ -1,0 +1,72 @@
+{
+  "id": "onicord-arcade",
+  "name": "Arcade",
+  "version": "0.1.0",
+  "scope": "hybrid",
+  "author": "Oniverse",
+  "description": "Biblioteca de juegos web clásicos y porteados con multijugador integrado, salas cooperativas y sincronización de perfiles.",
+  "icon": "assets/icon.png",
+  "main": "index.js",
+  "locales": {
+    "es": {
+      "name": "Arcade",
+      "description": "Biblioteca de juegos web clásicos y porteados con multijugador integrado, salas cooperativas y sincronización de perfiles.",
+      "commands": {
+        "/arcade": {
+          "description": "Abre la biblioteca de juegos Arcade."
+        }
+      }
+    },
+    "en": {
+      "name": "Arcade",
+      "description": "Classic and web-ported games library with integrated multiplayer, coop rooms and profile syncing.",
+      "commands": {
+        "/arcade": {
+          "description": "Open Arcade games library."
+        }
+      }
+    }
+  },
+  "permissions": [
+    "ui.voice_control_button",
+    "ui.stage_view",
+    "ui.custom_widget",
+    "p2p.network",
+    "storage",
+    "user.profile",
+    "server.info",
+    "gaming.activity",
+    "chat.read",
+    "chat.send"
+  ],
+  "voiceControlButtons": [
+    {
+      "id": "arcade_joystick",
+      "icon": "sports_esports",
+      "tooltip": "Arcade (Catálogo de Juegos)",
+      "action": "TOGGLE_ARCADE_STAGE"
+    }
+  ],
+  "dashboardWidgets": [
+    {
+      "id": "arcade-catalog",
+      "title": "Arcade",
+      "badgeText": "Juegos",
+      "type": "collaborative",
+      "bgVariant": "dark",
+      "entryPoint": "widgets/arcade_catalog.html",
+      "defaultGeo": {
+        "x": 1,
+        "y": 1,
+        "w": 4,
+        "h": 3
+      }
+    }
+  ],
+  "commands": [
+    {
+      "command": "/arcade",
+      "description": "Abre el catálogo y biblioteca de juegos de Arcade."
+    }
+  ]
+}

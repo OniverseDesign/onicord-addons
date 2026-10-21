@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arcade</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #11111b;
+      color: #cdd6f4;
+      padding: 16px;
+      user-select: none;
+      overflow-y: auto;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand svg {
+      width: 28px;
+      height: 28px;
+    }
+    .brand h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #cba6f7;
+      letter-spacing: -0.3px;
+    }
+    .brand span {
+      background: rgba(203, 166, 247, 0.15);
+      border: 1px solid rgba(203, 166, 247, 0.3);
+      color: #cba6f7;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* Featured Hero Card */
+    .hero-card {
+      background: linear-gradient(135deg, rgba(30, 30, 46, 0.95), rgba(49, 50, 68, 0.9));
+      border: 1px solid rgba(203, 166, 247, 0.3);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(203, 166, 247, 0.25) 0%, transparent 70%);
+      pointer-events-none;
+    }
+    .hero-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #a6e3a1;
+      background: rgba(166, 227, 161, 0.12);
+      border: 1px solid rgba(166, 227, 161, 0.25);
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .hero-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .hero-desc {
+      font-size: 12px;
+      color: #a6adc8;
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      background: #cba6f7;
+      color: #11111b;
+      box-shadow: 0 4px 12px rgba(203, 166, 247, 0.3);
+    }
+    .btn-primary:hover {
+      background: #b48ded;
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #cdd6f4;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    /* Grid of Games */
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #9399b2;
+      margin-bottom: 12px;
+    }
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .game-card {
+      background: #181825;
+      border: 1px solid #313244;
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-col;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .game-card:hover {
+      border-color: #cba6f7;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    }
+    .card-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: rgba(203, 166, 247, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .card-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: #9399b2;
+      margin-bottom: 6px;
+    }
+    .badge {
+      background: rgba(255, 255, 255, 0.07);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .badge-online {
+      background: rgba(166, 227, 161, 0.15);
+      color: #a6e3a1;
+      border: 1px solid rgba(166, 227, 161, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      <svg viewBox="0 0 128 128">
+        <rect x="8" y="8" width="112" height="112" rx="28" fill="#805ad5" />
+        <path d="M38 52 h-10 v24 h10 v10 h24 v-10 h10 v-24 h-10 v-10 h-24 z" fill="#1e1e2e" stroke="#cba6f7" stroke-width="3" />
+        <circle cx="88" cy="54" r="7" fill="#f38ba8" />
+        <circle cx="102" cy="68" r="7" fill="#89b4fa" />
+        <circle cx="74" cy="68" r="7" fill="#a6e3a1" />
+        <circle cx="88" cy="82" r="7" fill="#f9e2af" />
+      </svg>
+      <h2>Arcade</h2>
+      <span>Web Ports</span>
+    </div>
+  </div>
+
+  <!-- Featured Hero: PES 6 -->
+  <div class="hero-card">
+    <div class="hero-info">
+      <div class="hero-tag">● Multijugador Online Activo</div>
+      <div class="hero-title">Pro Evolution Soccer 6</div>
+      <div class="hero-desc">
+        Clásico de Konami recompilado a WebAssembly para navegador. Soporta partidas online P2P y relay, mandos USB/Bluetooth y relatos en español o Mariano Closs.
+      </div>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="launchGame('pes6')">
+          ▶ Jugar en Escenario
+        </button>
+        <button class="btn btn-secondary" onclick="launchGame('pes6', true)">
+          🗗 Modo PiP Flotante
+        </button>
+        <button class="btn btn-secondary" onclick="shareLobbyToChat('pes6')">
+          📢 Invitar al Chat
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Catálogo de Juegos Porteados</div>
+  <div class="games-grid">
+    <!-- PES 6 -->
+    <div class="game-card" onclick="launchGame('pes6')">
+      <div class="card-thumb">⚽</div>
+      <div class="card-body">
+        <div class="card-title">PES 6 Web Online</div>
+        <div class="card-meta">
+          <span class="badge badge-online">Multijugador</span>
+          <span class="badge">Mando</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Super Mario 64 -->
+    <div class="game-card" onclick="launchDirectUrl('Super Mario 64 Web', 'https://froggi.es/mario/')">
+      <div class="card-thumb">🍄</div>
+      <div class="card-body">
+        <div class="card-title">Super Mario 64</div>
+        <div class="card-meta">
+          <span class="badge">WASM 60FPS</span>
+          <span class="badge">Mando</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diablo 1 -->
+    <div class="game-card" onclick="launchDirectUrl('Diablo 1 Web', 'https://d07riv.github.io/diabloweb/')">
+      <div class="card-thumb">⚔️</div>
+      <div class="card-body">
+        <div class="card-title">Diablo 1 (DevilutionX)</div>
+        <div class="card-meta">
+          <span class="badge">RPG Clásico</span>
+          <span class="badge">WASM</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Doom 1 & 2 -->
+    <div class="game-card" onclick="launchDirectUrl('Doom Web', 'https://silentspacemarine.com/')">
+      <div class="card-thumb">🔫</div>
+      <div class="card-body">
+        <div class="card-title">Doom & Doom II</div>
+        <div class="card-meta">
+          <span class="badge">FPS Retro</span>
+          <span class="badge">WASM</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function launchGame(gameId, isFloating) {
+      const stagePayload = {
+        type: "ONICORD_OPEN_STAGE",
+        pluginId: "onicord-arcade",
+        title: "PES 6 Web Online",
+        badge: "Arcade",
+        icon: "sports_esports",
+        url: "https://pes6.optijuegos.net/",
+        shareCapture: {
+          triggerSelector: "#roomsShare",
+          windowProperty: "_onicordRoomLink",
+          queryParam: "sala"
+        },
+        frameScripts: [
+          "try { window.PES6 = window.PES6 || {}; if (!window.PES6.Ads) window.PES6.Ads = { load: () => {} }; window.adsbygoogle = window.adsbygoogle || []; } catch(_){}"
+        ],
+        isFloating: Boolean(isFloating)
+      };
+      if (window.parent) {
+        window.parent.postMessage(stagePayload, "*");
+      }
+      try {
+        window.dispatchEvent(new CustomEvent("onicord:open-stage", {
+          detail: stagePayload
+        }));
+      } catch(e) {}
+    }
+
+    function launchDirectUrl(title, url) {
+      if (window.parent) {
+        window.parent.postMessage({
+          type: "ONICORD_OPEN_STAGE",
+          pluginId: "onicord-arcade",
+          title: title,
+          url: url,
+          isFloating: false
+        }, "*");
+      }
+    }
+
+    function shareLobbyToChat(gameId) {
+      const roomCode = String(Math.floor(100 + Math.random() * 900));
+      const embedPayload = {
+        pluginId: "onicord-arcade",
+        type: "game_lobby",
+        data: {
+          gameTitle: "PES 6 Web Online",
+          gameIcon: "sports_soccer",
+          roomCode: roomCode,
+          authorName: "Jugador",
+          joinUrl: "https://pes6.optijuegos.net/?sala=" + roomCode
+        }
+      };
+      if (window.parent) {
+        window.parent.postMessage({
+          type: "ONICORD_SEND_CHAT_MESSAGE",
+          text: "[PLUGIN_EMBED]:" + JSON.stringify(embedPayload)
+        }, "*");
+      }
+    }
+  </script>
+</body>
+</html>
