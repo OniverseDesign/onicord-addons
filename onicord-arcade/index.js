@@ -288,14 +288,97 @@ const GAMES_REGISTRY = {
             const nickInterval = setInterval(applyNick, 1000);
             setTimeout(() => clearInterval(nickInterval), 45000);
 
+            // 4. Neutralización de motores de publicidad (AdinPlay, Google Ads, GPT)
+            try {
+              window.aiptag = window.aiptag || {};
+              window.aiptag.cmd = window.aiptag.cmd || [];
+              window.aiptag.cmd.display = [];
+              window.aiptag.cmd.player = [];
+              window.aiptag.display = () => {};
+              window.aiptag.player = () => {};
+              window.aiptag.showDisplay = () => {};
+              window.aiptag.showPlayer = (opts) => {
+                if (opts && typeof opts.onComplete === 'function') opts.onComplete();
+              };
+
+              window.adsbygoogle = window.adsbygoogle || [];
+              window.adsbygoogle.push = function() {};
+
+              window.googletag = window.googletag || {
+                cmd: [],
+                display: () => {},
+                enableServices: () => {},
+                pubads: () => ({
+                  setTargeting: () => {},
+                  clearTargeting: () => {},
+                  enableSingleRequest: () => {},
+                  collapseEmptyDivs: () => {},
+                  refresh: () => {}
+                })
+              };
+            } catch (_) {}
+
+            // 5. Inyección de reglas CSS globales para eliminar al 100% todos los contenedores de anuncios
+            try {
+              const styleId = "onicord-clean-ads-style";
+              if (!document.getElementById(styleId)) {
+                const style = document.createElement("style");
+                style.id = styleId;
+                style.textContent = `
+                  ins.adsbygoogle,
+                  .adsbygoogle,
+                  [id*="google_ads"],
+                  [id^="ad-"],
+                  [id*="ad-"],
+                  [id*="adinplay"],
+                  [id*="nitropay"],
+                  [id*="playwire"],
+                  [id*="banner"],
+                  .ad-banner,
+                  .publi,
+                  .anuncio,
+                  .advertisement,
+                  .ad-container,
+                  .ad-wrapper,
+                  .lateralAd,
+                  .ad,
+                  .ads,
+                  aside[class*="ad"],
+                  iframe[src*="adinplay"],
+                  iframe[src*="doubleclick"],
+                  iframe[src*="google"],
+                  iframe[id*="ad"],
+                  div[class*="publi"],
+                  div[class*="bannerAd"] {
+                    display: none !important;
+                    visibility: hidden !important;
+                    height: 0 !important;
+                    width: 0 !important;
+                    min-height: 0 !important;
+                    min-width: 0 !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                  }
+                `;
+                (document.head || document.documentElement).appendChild(style);
+              }
+            } catch (_) {}
+
             const hideAds = () => {
               try {
-                const ads = document.querySelectorAll('ins.adsbygoogle, [id*="google_ads"], .ad-banner, .adsbygoogle, #ad-top, #ad-bottom, .publi');
-                ads.forEach(ad => ad.style.setProperty('display', 'none', 'important'));
+                const ads = document.querySelectorAll(
+                  'ins.adsbygoogle, [id*="google_ads"], .ad-banner, .adsbygoogle, #ad-top, #ad-bottom, .publi, [id*="adinplay"], iframe[src*="adinplay"], iframe[id*="ad"]'
+                );
+                ads.forEach(ad => {
+                  ad.style.setProperty('display', 'none', 'important');
+                  if (ad.parentElement && (ad.parentElement.tagName === 'ASIDE' || ad.parentElement.className.includes('lateral'))) {
+                    ad.parentElement.style.setProperty('display', 'none', 'important');
+                  }
+                });
               } catch (_) {}
             };
             hideAds();
-            setInterval(hideAds, 2500);
+            setInterval(hideAds, 1000);
 
             window._onicordGetActiveRoomLink = function() {
               if (window._onicordRoomLink && window._onicordRoomLink.includes('c=')) {
@@ -389,14 +472,75 @@ const GAMES_REGISTRY = {
             const nickInterval = setInterval(applyNick, 1000);
             setTimeout(() => clearInterval(nickInterval), 45000);
 
+            // 4. Neutralización de motores de publicidad (AdinPlay, Google Ads, GPT)
+            try {
+              window.aiptag = window.aiptag || {};
+              window.aiptag.cmd = window.aiptag.cmd || [];
+              window.aiptag.cmd.display = [];
+              window.aiptag.cmd.player = [];
+              window.aiptag.display = () => {};
+              window.aiptag.player = () => {};
+              window.aiptag.showDisplay = () => {};
+              window.aiptag.showPlayer = (opts) => {
+                if (opts && typeof opts.onComplete === 'function') opts.onComplete();
+              };
+
+              window.adsbygoogle = window.adsbygoogle || [];
+              window.adsbygoogle.push = function() {};
+
+              window.googletag = window.googletag || {
+                cmd: [],
+                display: () => {},
+                enableServices: () => {},
+                pubads: () => ({
+                  setTargeting: () => {},
+                  clearTargeting: () => {},
+                  enableSingleRequest: () => {},
+                  collapseEmptyDivs: () => {},
+                  refresh: () => {}
+                })
+              };
+            } catch (_) {}
+
+            // 5. Inyección de reglas CSS para eliminar contenedores y banners en Skribbl
+            try {
+              const styleId = "onicord-skribbl-ads-style";
+              if (!document.getElementById(styleId)) {
+                const style = document.createElement("style");
+                style.id = styleId;
+                style.textContent = `
+                  .ad-2,
+                  ins.adsbygoogle,
+                  .adsbygoogle,
+                  [id*="ad-"],
+                  [id^="ad-"],
+                  [id*="adinplay"],
+                  #banner-left,
+                  #banner-right,
+                  iframe[src*="adinplay"],
+                  iframe[src*="doubleclick"] {
+                    display: none !important;
+                    visibility: hidden !important;
+                    height: 0 !important;
+                    width: 0 !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                  }
+                `;
+                (document.head || document.documentElement).appendChild(style);
+              }
+            } catch (_) {}
+
             const hideAds = () => {
               try {
-                const ads = document.querySelectorAll('.ad-2, ins.adsbygoogle, [id*="ad-"], .adsbygoogle, #banner-left, #banner-right');
+                const ads = document.querySelectorAll(
+                  '.ad-2, ins.adsbygoogle, [id*="ad-"], .adsbygoogle, #banner-left, #banner-right, [id*="adinplay"], iframe[src*="adinplay"]'
+                );
                 ads.forEach(ad => ad.style.setProperty('display', 'none', 'important'));
               } catch (_) {}
             };
             hideAds();
-            setInterval(hideAds, 2500);
+            setInterval(hideAds, 1000);
 
             window._onicordGetActiveRoomLink = function() {
               const inviteInput = document.querySelector('#input-invite');
