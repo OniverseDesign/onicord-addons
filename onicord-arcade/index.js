@@ -785,22 +785,6 @@ if (typeof Onicord !== "undefined" && Onicord.chat?.onCommand) {
   Onicord.chat.onCommand("arcade", async () => {
     openArcadeLauncher();
   });
-
-  // Atajos para lanzar juegos directamente
-  Onicord.chat.onCommand("pes6", async (args) => {
-    const room = args && args[0] ? args[0] : null;
-    launchGame(GAMES_REGISTRY.pes6, { roomCode: room, url: room ? `https://pes6.optijuegos.net/?sala=${room}` : GAMES_REGISTRY.pes6.url });
-  });
-
-  Onicord.chat.onCommand("gartic", async (args) => {
-    const room = args && args[0] ? args[0] : null;
-    launchGame(GAMES_REGISTRY.garticphone, { roomCode: room, url: room ? `https://garticphone.com/es/?c=${room}` : GAMES_REGISTRY.garticphone.url });
-  });
-
-  Onicord.chat.onCommand("skribbl", async (args) => {
-    const room = args && args[0] ? args[0] : null;
-    launchGame(GAMES_REGISTRY.skribbl, { roomCode: room, url: room ? `https://skribbl.io/?${room}` : GAMES_REGISTRY.skribbl.url });
-  });
 }
 
 // ==========================================

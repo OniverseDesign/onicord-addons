@@ -14,15 +14,6 @@
       "commands": {
         "/arcade": {
           "description": "Abre la biblioteca de juegos Arcade."
-        },
-        "/pes6": {
-          "description": "Inicia Pro Evolution Soccer 6 o únete a una sala (/pes6 [sala])."
-        },
-        "/gartic": {
-          "description": "Inicia Gartic Phone o únete a una sala (/gartic [código])."
-        },
-        "/skribbl": {
-          "description": "Inicia Skribbl.io o únete a una sala (/skribbl [código])."
         }
       }
     },
@@ -32,15 +23,6 @@
       "commands": {
         "/arcade": {
           "description": "Open Arcade games library."
-        },
-        "/pes6": {
-          "description": "Launch Pro Evolution Soccer 6 or join a room (/pes6 [room])."
-        },
-        "/gartic": {
-          "description": "Launch Gartic Phone or join a room (/gartic [code])."
-        },
-        "/skribbl": {
-          "description": "Launch Skribbl.io or join a room (/skribbl [code])."
         }
       }
     }
@@ -68,18 +50,6 @@
     {
       "command": "/arcade",
       "description": "Abre el catálogo y biblioteca de juegos de Arcade."
-    },
-    {
-      "command": "/pes6",
-      "description": "Inicia Pro Evolution Soccer 6 o únete a una sala."
-    },
-    {
-      "command": "/gartic",
-      "description": "Inicia Gartic Phone o únete a una sala."
-    },
-    {
-      "command": "/skribbl",
-      "description": "Inicia Skribbl.io o únete a una sala."
     }
   ]
 }
