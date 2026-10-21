@@ -595,3 +595,30 @@ if (typeof Onicord !== "undefined" && Onicord.chat?.onCommand) {
     launchGame(GAMES_REGISTRY.skribbl, { roomCode: room, url: room ? `https://skribbl.io/?${room}` : GAMES_REGISTRY.skribbl.url });
   });
 }
+
+// ==========================================
+// 7. RESOLVEDOR AGNÓSTICO DE ETAPAS (STAGE RESOLVER)
+// ==========================================
+// Permite que cuando un compañero se una desde el chat a una partida de Arcade,
+// Onicord consulte de forma agnóstica a este complemento los scripts y hooks locales confiables.
+if (typeof Onicord !== "undefined" && Onicord.stage?.onResolveStage) {
+  Onicord.stage.onResolveStage((stageReq) => {
+    if (!stageReq) return null;
+    const reqUrl = stageReq.url ? String(stageReq.url).toLowerCase() : "";
+    for (const game of Object.values(GAMES_REGISTRY)) {
+      if (!game.url) continue;
+      const baseUrl = game.url.split("?")[0].toLowerCase().replace(/\/+$/, "");
+      if (reqUrl.startsWith(baseUrl) || (stageReq.id && stageReq.id === game.id)) {
+        return {
+          title: game.title,
+          icon: game.icon || "sports_esports",
+          cover: game.cover || null,
+          shareCapture: game.shareCapture || null,
+          frameScripts: game.frameScripts || [],
+        };
+      }
+    }
+    return null;
+  });
+}
+
