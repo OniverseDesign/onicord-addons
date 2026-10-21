@@ -37,6 +37,17 @@ const GAMES_REGISTRY = {
               window.PES6.Core._onicordHooked = true;
             }
 
+            if (navigator.clipboard && !navigator.clipboard._onicordHooked) {
+              const origWrite = navigator.clipboard.writeText;
+              navigator.clipboard.writeText = function(text) {
+                if (typeof text === 'string' && text.includes('sala=')) {
+                  window._onicordRoomLink = text.trim();
+                }
+                return origWrite.apply(this, arguments);
+              };
+              navigator.clipboard._onicordHooked = true;
+            }
+
             const hookRoomsLink = () => {
               if (window.PES6?.Rooms?.Link?.on && !window.PES6.Rooms._onicordLiveHooked) {
                 window.PES6.Rooms._onicordLiveHooked = true;
@@ -62,15 +73,19 @@ const GAMES_REGISTRY = {
                   } catch (_) {}
                 });
               }
+
+              try {
+                const r = window.PES6?.Rooms?.currentRoom || window.PES6?.Rooms?.room || (window.PES6?.Rooms?.game && window.PES6?.Rooms?.game?.room);
+                if (r && r !== 'default' && r !== 'wait') {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('sala', r);
+                  window._onicordRoomLink = url.href;
+                }
+              } catch (_) {}
             };
 
             hookRoomsLink();
-            if (!window.PES6.Rooms?._onicordLiveHooked) {
-              const hookInterval = setInterval(() => {
-                hookRoomsLink();
-                if (window.PES6.Rooms?._onicordLiveHooked) clearInterval(hookInterval);
-              }, 500);
-            }
+            setInterval(hookRoomsLink, 1000);
 
             const applyNick = () => {
               const rawNick = window._onicordUserNick;
@@ -80,11 +95,24 @@ const GAMES_REGISTRY = {
 
               try {
                 localStorage.setItem('pes6-player-name', nick);
+                localStorage.setItem('player-name', nick);
               } catch (_) {}
 
               if (window.PES6?.Rooms?.PlayerName) {
                 window.PES6.Rooms.PlayerName.ask = () => nick;
+                window.PES6.Rooms.PlayerName.get = () => nick;
               }
+
+              try {
+                const nameInputs = document.querySelectorAll('input#player-name, input#playerName, input[name="player"], input#nick');
+                nameInputs.forEach((inp) => {
+                  if (inp && inp.value !== nick) {
+                    inp.value = nick;
+                    inp.dispatchEvent(new Event('input', { bubbles: true }));
+                    inp.dispatchEvent(new Event('change', { bubbles: true }));
+                  }
+                });
+              } catch (_) {}
 
               if (window.PES6?.Rooms?.Link) {
                 const Link = window.PES6.Rooms.Link;
@@ -106,7 +134,7 @@ const GAMES_REGISTRY = {
 
             applyNick();
             const nickInterval = setInterval(applyNick, 1000);
-            setTimeout(() => clearInterval(nickInterval), 20000);
+            setTimeout(() => clearInterval(nickInterval), 30000);
           } catch (_) {}
         })()
       `

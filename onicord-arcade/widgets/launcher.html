@@ -674,7 +674,127 @@
           queryParam: "sala"
         },
         frameScripts: [
-          `try { window.PES6 = window.PES6 || {}; if (!window.PES6.Ads) window.PES6.Ads = { load: () => {} }; window.adsbygoogle = window.adsbygoogle || []; } catch(_){}`
+          `
+            (() => {
+              try {
+                window.PES6 = window.PES6 || {};
+                if (!window.PES6.Ads) window.PES6.Ads = { load: () => {} };
+                window.adsbygoogle = window.adsbygoogle || [];
+
+                if (window.PES6.Core && !window.PES6.Core._onicordHooked) {
+                  const origCopy = window.PES6.Core.copyText;
+                  window.PES6.Core.copyText = function(text, button, label) {
+                    if (typeof text === 'string' && text.includes('sala=')) {
+                      window._onicordRoomLink = text.trim();
+                    }
+                    return origCopy.apply(this, arguments);
+                  };
+                  window.PES6.Core._onicordHooked = true;
+                }
+
+                if (navigator.clipboard && !navigator.clipboard._onicordHooked) {
+                  const origWrite = navigator.clipboard.writeText;
+                  navigator.clipboard.writeText = function(text) {
+                    if (typeof text === 'string' && text.includes('sala=')) {
+                      window._onicordRoomLink = text.trim();
+                    }
+                    return origWrite.apply(this, arguments);
+                  };
+                  navigator.clipboard._onicordHooked = true;
+                }
+
+                const hookRoomsLink = () => {
+                  if (window.PES6?.Rooms?.Link?.on && !window.PES6.Rooms._onicordLiveHooked) {
+                    window.PES6.Rooms._onicordLiveHooked = true;
+
+                    window.PES6.Rooms.Link.on('rooms', (msg) => {
+                      try {
+                        if (msg && msg.game && msg.game.room && msg.game.room !== 'default' && msg.game.room !== 'wait') {
+                          const url = new URL(window.location.href);
+                          url.searchParams.set('sala', msg.game.room);
+                          if (msg.game.invite) url.searchParams.set('invite', msg.game.invite);
+                          window._onicordRoomLink = url.href;
+                        } else if (msg && msg.game && !msg.game.room) {
+                          window._onicordRoomLink = null;
+                        }
+                      } catch (_) {}
+                    });
+
+                    window.PES6.Rooms.Link.on('room-result', (msg) => {
+                      try {
+                        if (msg && (msg.action === 'leave' || (msg.action === 'join' && !msg.ok))) {
+                          window._onicordRoomLink = null;
+                        }
+                      } catch (_) {}
+                    });
+                  }
+
+                  try {
+                    const r = window.PES6?.Rooms?.currentRoom || window.PES6?.Rooms?.room || (window.PES6?.Rooms?.game && window.PES6?.Rooms?.game?.room);
+                    if (r && r !== 'default' && r !== 'wait') {
+                      const url = new URL(window.location.href);
+                      url.searchParams.set('sala', r);
+                      window._onicordRoomLink = url.href;
+                    }
+                  } catch (_) {}
+                };
+
+                hookRoomsLink();
+                setInterval(hookRoomsLink, 1000);
+
+                const applyNick = () => {
+                  const rawNick = window._onicordUserNick;
+                  if (!rawNick || rawNick === 'PLAYER') return;
+                  const nick = String(rawNick).replace(/[\\u0000-\\u001f\\u007f]/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 20);
+                  if (!nick) return;
+
+                  try {
+                    localStorage.setItem('pes6-player-name', nick);
+                    localStorage.setItem('player-name', nick);
+                  } catch (_) {}
+
+                  if (window.PES6?.Rooms?.PlayerName) {
+                    window.PES6.Rooms.PlayerName.ask = () => nick;
+                    window.PES6.Rooms.PlayerName.get = () => nick;
+                  }
+
+                  try {
+                    const nameInputs = document.querySelectorAll('input#player-name, input#playerName, input[name="player"], input#nick');
+                    nameInputs.forEach((inp) => {
+                      if (inp && inp.value !== nick) {
+                        inp.value = nick;
+                        inp.dispatchEvent(new Event('input', { bubbles: true }));
+                        inp.dispatchEvent(new Event('change', { bubbles: true }));
+                      }
+                    });
+                  } catch (_) {}
+
+                  if (window.PES6?.Rooms?.Link) {
+                    const Link = window.PES6.Rooms.Link;
+                    if (typeof Link.send === 'function') {
+                      try {
+                        Link.send({ type: 'room-nick', nick: nick });
+                      } catch (_) {}
+                    }
+                    if (!Link._onicordNickHooked && typeof Link.on === 'function') {
+                      Link._onicordNickHooked = true;
+                      Link.on('open', () => {
+                        try {
+                          Link.send({ type: 'room-nick', nick: nick });
+                        } catch (_) {}
+                      });
+                    }
+                  }
+                };
+
+                applyNick();
+                const nickInterval = setInterval(applyNick, 1000);
+                setTimeout(() => clearInterval(nickInterval), 30000);
+              } catch (e) {
+                console.error('[PES6 Hook Error]', e);
+              }
+            })()
+          `
         ]
       },
       {
@@ -951,6 +1071,8 @@
             platform: game.platform,
             shareCapture: game.shareCapture || null,
             frameScripts: game.frameScripts || [],
+            userNick: window._onicordUserNick || "Jugador",
+            authorName: window._onicordUserNick || "Jugador",
             type: "game",
             isCatalog: false
           }
