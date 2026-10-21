@@ -218,6 +218,209 @@ const GAMES_REGISTRY = {
     icon: "view_in_ar",
     url: "https://mcraft.fun/",
     cover: "https://mcraft.fun/loading-bg.jpg",
+  },
+  garticphone: {
+    id: "garticphone",
+    title: "Gartic Phone",
+    icon: "draw",
+    url: "https://garticphone.com/es/",
+    cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co399o.png",
+    shareCapture: {
+      triggerSelector: "button.invite, .btInvite, #invite, button[class*=\"invite\" i]",
+      windowProperty: "_onicordRoomLink",
+      queryParam: "c="
+    },
+    frameScripts: [
+      `
+        (() => {
+          try {
+            const getNick = () => {
+              const raw = window._onicordUserNick;
+              if (!raw || raw === 'PLAYER') return '';
+              return String(raw).replace(/[\\u0000-\\u001f\\u007f]/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 20);
+            };
+
+            const targetNick = getNick();
+
+            if (navigator.clipboard && !navigator.clipboard._onicordHooked) {
+              const origWrite = navigator.clipboard.writeText;
+              navigator.clipboard.writeText = function(text) {
+                if (typeof text === 'string' && text.includes('c=')) {
+                  window._onicordRoomLink = text.trim();
+                }
+                return origWrite.apply(this, arguments);
+              };
+              navigator.clipboard._onicordHooked = true;
+            }
+
+            const checkUrl = () => {
+              try {
+                if (window.location && window.location.search && window.location.search.includes('c=')) {
+                  window._onicordRoomLink = window.location.href;
+                }
+              } catch (_) {}
+            };
+            checkUrl();
+            setInterval(checkUrl, 1000);
+
+            const applyNick = () => {
+              const nick = getNick();
+              if (!nick) return;
+              try {
+                localStorage.setItem('name', nick);
+                localStorage.setItem('nick', nick);
+                localStorage.setItem('nickname', nick);
+              } catch (_) {}
+
+              try {
+                const inputs = document.querySelectorAll('input.name, input[name="name"], .inputName, input[placeholder*="nombre" i], input[placeholder*="name" i], .user input');
+                inputs.forEach((inp) => {
+                  if (inp && inp.value !== nick) {
+                    inp.value = nick;
+                    inp.dispatchEvent(new Event('input', { bubbles: true }));
+                    inp.dispatchEvent(new Event('change', { bubbles: true }));
+                  }
+                });
+              } catch (_) {}
+            };
+
+            applyNick();
+            const nickInterval = setInterval(applyNick, 1000);
+            setTimeout(() => clearInterval(nickInterval), 45000);
+
+            const hideAds = () => {
+              try {
+                const ads = document.querySelectorAll('ins.adsbygoogle, [id*="google_ads"], .ad-banner, .adsbygoogle, #ad-top, #ad-bottom, .publi');
+                ads.forEach(ad => ad.style.setProperty('display', 'none', 'important'));
+              } catch (_) {}
+            };
+            hideAds();
+            setInterval(hideAds, 2500);
+
+            window._onicordGetActiveRoomLink = function() {
+              if (window._onicordRoomLink && window._onicordRoomLink.includes('c=')) {
+                return window._onicordRoomLink;
+              }
+              if (window.location && window.location.search && window.location.search.includes('c=')) {
+                window._onicordRoomLink = window.location.href;
+                return window._onicordRoomLink;
+              }
+              const invBtn = document.querySelector('button.invite, .btInvite, #invite, button[class*="invite" i]');
+              if (invBtn && typeof invBtn.click === 'function') {
+                try { invBtn.click(); } catch (_) {}
+              }
+              return window._onicordRoomLink || (window.location.href.includes('c=') ? window.location.href : null);
+            };
+          } catch (e) {
+            console.error('[Gartic Phone Hook Error]', e);
+          }
+        })()
+      `
+    ]
+  },
+  skribbl: {
+    id: "skribbl",
+    title: "Skribbl.io",
+    icon: "palette",
+    url: "https://skribbl.io/",
+    cover: "https://skribbl.io/img/thumbnail.png",
+    shareCapture: {
+      triggerSelector: "#copy-invite, .copy-invite, #button-lobby-create",
+      windowProperty: "_onicordRoomLink",
+      queryParam: "skribbl.io/?"
+    },
+    frameScripts: [
+      `
+        (() => {
+          try {
+            const getNick = () => {
+              const raw = window._onicordUserNick;
+              if (!raw || raw === 'PLAYER') return '';
+              return String(raw).replace(/[\\u0000-\\u001f\\u007f]/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 20);
+            };
+
+            const targetNick = getNick();
+
+            if (navigator.clipboard && !navigator.clipboard._onicordHooked) {
+              const origWrite = navigator.clipboard.writeText;
+              navigator.clipboard.writeText = function(text) {
+                if (typeof text === 'string' && text.includes('skribbl.io/?')) {
+                  window._onicordRoomLink = text.trim();
+                }
+                return origWrite.apply(this, arguments);
+              };
+              navigator.clipboard._onicordHooked = true;
+            }
+
+            const checkRoom = () => {
+              try {
+                const inviteInput = document.querySelector('#input-invite');
+                if (inviteInput && inviteInput.value && inviteInput.value.includes('skribbl.io/?')) {
+                  window._onicordRoomLink = inviteInput.value.trim();
+                } else if (window.location && window.location.search && window.location.search.length > 2 && window.location.href.includes('skribbl.io/?')) {
+                  window._onicordRoomLink = window.location.href;
+                }
+              } catch (_) {}
+            };
+            checkRoom();
+            setInterval(checkRoom, 1000);
+
+            const applyNick = () => {
+              const nick = getNick();
+              if (!nick) return;
+              try {
+                localStorage.setItem('name', nick);
+                localStorage.setItem('player-name', nick);
+              } catch (_) {}
+
+              try {
+                const inputs = document.querySelectorAll('#input-name, input[name="name"], .input-name, input[placeholder*="Name" i], input[placeholder*="nombre" i]');
+                inputs.forEach((inp) => {
+                  if (inp && inp.value !== nick) {
+                    inp.value = nick;
+                    inp.dispatchEvent(new Event('input', { bubbles: true }));
+                    inp.dispatchEvent(new Event('change', { bubbles: true }));
+                  }
+                });
+              } catch (_) {}
+            };
+
+            applyNick();
+            const nickInterval = setInterval(applyNick, 1000);
+            setTimeout(() => clearInterval(nickInterval), 45000);
+
+            const hideAds = () => {
+              try {
+                const ads = document.querySelectorAll('.ad-2, ins.adsbygoogle, [id*="ad-"], .adsbygoogle, #banner-left, #banner-right');
+                ads.forEach(ad => ad.style.setProperty('display', 'none', 'important'));
+              } catch (_) {}
+            };
+            hideAds();
+            setInterval(hideAds, 2500);
+
+            window._onicordGetActiveRoomLink = function() {
+              const inviteInput = document.querySelector('#input-invite');
+              if (inviteInput && inviteInput.value && inviteInput.value.includes('skribbl.io/?')) {
+                return inviteInput.value.trim();
+              }
+              if (window._onicordRoomLink && window._onicordRoomLink.includes('skribbl.io/?')) {
+                return window._onicordRoomLink;
+              }
+              if (window.location && window.location.search && window.location.search.length > 2 && window.location.href.includes('skribbl.io/?')) {
+                return window.location.href;
+              }
+              const copyBtn = document.querySelector('#copy-invite, .copy-invite');
+              if (copyBtn && typeof copyBtn.click === 'function') {
+                try { copyBtn.click(); } catch (_) {}
+              }
+              return window._onicordRoomLink || null;
+            };
+          } catch (e) {
+            console.error('[Skribbl Hook Error]', e);
+          }
+        })()
+      `
+    ]
   }
 };
 
@@ -312,10 +515,14 @@ async function shareGameLobby(gameKey, roomCode, context = null) {
   if (game.url && finalRoomCode) {
     try {
       const u = new URL(game.url);
-      u.searchParams.set(game.shareCapture?.queryParam || "sala", finalRoomCode);
+      if (game.id === "skribbl") {
+        u.search = `?${finalRoomCode}`;
+      } else {
+        u.searchParams.set(game.shareCapture?.queryParam?.replace("=", "") || "sala", finalRoomCode);
+      }
       joinUrl = u.href;
     } catch (_) {
-      joinUrl = `${game.url}?sala=${finalRoomCode}`;
+      joinUrl = game.id === "skribbl" ? `${game.url}?${finalRoomCode}` : `${game.url}?sala=${finalRoomCode}`;
     }
   }
 
@@ -370,5 +577,21 @@ if (typeof Onicord !== "undefined" && Onicord.chat?.onCommand) {
   // Comando para abrir el catálogo general
   Onicord.chat.onCommand("arcade", async () => {
     openArcadeLauncher();
+  });
+
+  // Atajos para lanzar juegos directamente
+  Onicord.chat.onCommand("pes6", async (args) => {
+    const room = args && args[0] ? args[0] : null;
+    launchGame(GAMES_REGISTRY.pes6, { roomCode: room, url: room ? `https://pes6.optijuegos.net/?sala=${room}` : GAMES_REGISTRY.pes6.url });
+  });
+
+  Onicord.chat.onCommand("gartic", async (args) => {
+    const room = args && args[0] ? args[0] : null;
+    launchGame(GAMES_REGISTRY.garticphone, { roomCode: room, url: room ? `https://garticphone.com/es/?c=${room}` : GAMES_REGISTRY.garticphone.url });
+  });
+
+  Onicord.chat.onCommand("skribbl", async (args) => {
+    const room = args && args[0] ? args[0] : null;
+    launchGame(GAMES_REGISTRY.skribbl, { roomCode: room, url: room ? `https://skribbl.io/?${room}` : GAMES_REGISTRY.skribbl.url });
   });
 }
