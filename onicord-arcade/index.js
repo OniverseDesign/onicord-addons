@@ -28,7 +28,7 @@ const GAMES_REGISTRY = {
 
             const getNick = () => {
               const raw = window._onicordUserNick;
-              if (!raw || raw === 'PLAYER') return '';
+              if (!raw || raw === 'PLAYER' || raw === 'Jugador') return '';
               return String(raw).replace(/[\\u0000-\\u001f\\u007f]/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 20);
             };
 
@@ -226,7 +226,7 @@ const GAMES_REGISTRY = {
     url: "https://garticphone.com/es/",
     cover: "https://garticphone.com/images/thumb.png",
     shareCapture: {
-      triggerSelector: "button.invite, .btInvite, #invite, button[class*=\"invite\" i]",
+      triggerSelector: "button, [role=\"button\"]",
       windowProperty: "_onicordRoomLink",
       queryParam: "c="
     },
@@ -236,16 +236,17 @@ const GAMES_REGISTRY = {
           try {
             const getNick = () => {
               const raw = window._onicordUserNick;
-              if (!raw || raw === 'PLAYER') return '';
+              if (!raw || raw === 'PLAYER' || raw === 'Jugador') return '';
               return String(raw).replace(/[\\u0000-\\u001f\\u007f]/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 20);
             };
 
             const targetNick = getNick();
 
+            // 1. Interceptar copiado de enlaces para capturar la sala activa
             if (navigator.clipboard && !navigator.clipboard._onicordHooked) {
               const origWrite = navigator.clipboard.writeText;
               navigator.clipboard.writeText = function(text) {
-                if (typeof text === 'string' && text.includes('c=')) {
+                if (typeof text === 'string' && (text.includes('c=') || text.includes('garticphone.com'))) {
                   window._onicordRoomLink = text.trim();
                 }
                 return origWrite.apply(this, arguments);
@@ -253,6 +254,22 @@ const GAMES_REGISTRY = {
               navigator.clipboard._onicordHooked = true;
             }
 
+            if (!document._onicordCopyHooked) {
+              document.addEventListener('copy', () => {
+                try {
+                  const active = document.activeElement;
+                  if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
+                    const val = active.value;
+                    if (val && (val.includes('c=') || val.includes('garticphone.com'))) {
+                      window._onicordRoomLink = val.trim();
+                    }
+                  }
+                } catch (_) {}
+              }, true);
+              document._onicordCopyHooked = true;
+            }
+
+            // 2. Monitoreo pasivo de la URL para capturar código de sala
             const checkUrl = () => {
               try {
                 if (window.location && window.location.search && window.location.search.includes('c=')) {
@@ -263,29 +280,49 @@ const GAMES_REGISTRY = {
             checkUrl();
             setInterval(checkUrl, 1000);
 
+            // 3. Sincronización robusta del apodo con componentes React/Next.js
+            const setReactInputValue = (input, val) => {
+              try {
+                const descriptor = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
+                if (descriptor && descriptor.set) {
+                  descriptor.set.call(input, val);
+                } else {
+                  input.value = val;
+                }
+                input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+                input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'a' }));
+                input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'a' }));
+              } catch (_) {}
+            };
+
             const applyNick = () => {
               const nick = getNick();
               if (!nick) return;
+
               try {
                 localStorage.setItem('name', nick);
                 localStorage.setItem('nick', nick);
                 localStorage.setItem('nickname', nick);
+                localStorage.setItem('user', JSON.stringify({ name: nick }));
+                sessionStorage.setItem('nick', nick);
+                sessionStorage.setItem('name', nick);
               } catch (_) {}
 
               try {
-                const inputs = document.querySelectorAll('input.name, input[name="name"], .inputName, input[placeholder*="nombre" i], input[placeholder*="name" i], .user input');
+                const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])'));
                 inputs.forEach((inp) => {
-                  if (inp && inp.value !== nick) {
-                    inp.value = nick;
-                    inp.dispatchEvent(new Event('input', { bubbles: true }));
-                    inp.dispatchEvent(new Event('change', { bubbles: true }));
+                  if (!inp.type || inp.type === 'text') {
+                    if (inp.value !== nick) {
+                      setReactInputValue(inp, nick);
+                    }
                   }
                 });
               } catch (_) {}
             };
 
             applyNick();
-            const nickInterval = setInterval(applyNick, 1000);
+            const nickInterval = setInterval(applyNick, 600);
             setTimeout(() => clearInterval(nickInterval), 45000);
 
             // 4. Neutralización de motores de publicidad (AdinPlay, Google Ads, GPT)
@@ -381,14 +418,40 @@ const GAMES_REGISTRY = {
             setInterval(hideAds, 1000);
 
             window._onicordGetActiveRoomLink = function() {
-              if (window._onicordRoomLink && window._onicordRoomLink.includes('c=')) {
+              if (window._onicordRoomLink && (window._onicordRoomLink.includes('c=') || window._onicordRoomLink.includes('garticphone.com'))) {
                 return window._onicordRoomLink;
               }
               if (window.location && window.location.search && window.location.search.includes('c=')) {
                 window._onicordRoomLink = window.location.href;
                 return window._onicordRoomLink;
               }
-              const invBtn = document.querySelector('button.invite, .btInvite, #invite, button[class*="invite" i]');
+
+              // Buscar en inputs o elementos que muestren el link de invitación
+              try {
+                const linkEl = Array.from(document.querySelectorAll('input, a')).find(el => {
+                  const val = el.value || el.href || '';
+                  return typeof val === 'string' && val.includes('c=');
+                });
+                if (linkEl) {
+                  const found = (linkEl.value || linkEl.href).trim();
+                  if (found.startsWith('http')) {
+                    window._onicordRoomLink = found;
+                    return found;
+                  }
+                }
+              } catch (_) {}
+
+              // Pulsar el botón de invitar del lobby para disparar el copiado
+              const candidates = Array.from(document.querySelectorAll('button, [role="button"], a, input[type="button"]'));
+              const invBtn = candidates.find(b => {
+                const txt = (b.textContent || '').trim().toLowerCase();
+                const aria = (b.getAttribute('aria-label') || '').toLowerCase();
+                const title = (b.getAttribute('title') || '').toLowerCase();
+                const cls = (b.className || '').toString().toLowerCase();
+                return txt.includes('invit') || txt.includes('share') || txt.includes('copiar') ||
+                       aria.includes('invit') || aria.includes('share') || aria.includes('copiar') ||
+                       cls.includes('invite') || cls.includes('share');
+              });
               if (invBtn && typeof invBtn.click === 'function') {
                 try { invBtn.click(); } catch (_) {}
               }
