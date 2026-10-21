@@ -211,6 +211,42 @@ const GAMES_REGISTRY = {
     icon: "skull",
     url: "https://tboi.online/",
     cover: "https://tboi.online/og.jpg",
+    frameScripts: [
+      `
+        (() => {
+          console.warn("[OniDiag][TBOI] Hook de control e inicialización activado en " + window.location.href);
+
+          // Auto-enfocar el canvas para que Chromium y el motor capturen entradas
+          const focusCanvas = () => {
+            const canvas = document.getElementById("canvas") || document.querySelector("canvas");
+            if (canvas) {
+              canvas.tabIndex = 0;
+              canvas.focus();
+              console.warn("[OniDiag][TBOI] Canvas enfocado exitosamente");
+            }
+          };
+
+          focusCanvas();
+          window.addEventListener("load", focusCanvas);
+          setTimeout(focusCanvas, 500);
+          setTimeout(focusCanvas, 1500);
+          setTimeout(focusCanvas, 3000);
+
+          // Escuchar eventos de gamepad nativo y sincronizado
+          window.addEventListener("gamepadconnected", (e) => {
+            console.warn("[OniDiag][TBOI] Gamepad conectado detectado:", e.gamepad ? e.gamepad.id : "mando");
+            if (window.isaacPadReader && typeof window.isaacPadReader.wake === "function") {
+              window.isaacPadReader.wake();
+            }
+          });
+
+          // Si el lector de mandos ya fue instanciado por boot_web.mjs, despertarlo
+          if (window.isaacPadReader && typeof window.isaacPadReader.wake === "function") {
+            window.isaacPadReader.wake();
+          }
+        })();
+      `,
+    ],
   },
   minecraft: {
     id: "minecraft",

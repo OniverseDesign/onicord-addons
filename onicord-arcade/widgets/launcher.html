@@ -1534,7 +1534,16 @@
             userNick: window._onicordUserNick || "",
             authorName: window._onicordUserNick || "",
             type: "game",
-            isCatalog: false
+            isCatalog: false,
+            activity: {
+              name: game.title,
+              details: "Arcade",
+              state: "En partida",
+              cover: effectiveCover,
+              type: "game",
+              isCatalog: false,
+              startTime: Date.now(),
+            }
           }
         }, "*");
       }
