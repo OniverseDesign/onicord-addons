@@ -681,6 +681,26 @@
                 if (!window.PES6.Ads) window.PES6.Ads = { load: () => {} };
                 window.adsbygoogle = window.adsbygoogle || [];
 
+                const getNick = () => {
+                  const raw = window._onicordUserNick;
+                  if (!raw || raw === 'PLAYER') return '';
+                  return String(raw).replace(/[\\u0000-\\u001f\\u007f]/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 20);
+                };
+
+                const targetNick = getNick();
+
+                // 1. Interceptar prompt de JS por si el motor o player_name.js pregunta el nombre
+                if (targetNick) {
+                  const origPrompt = window.prompt;
+                  window.prompt = function(msg, def) {
+                    if (msg && typeof msg === 'string' && msg.toLowerCase().includes('player name')) {
+                      return targetNick;
+                    }
+                    return origPrompt ? origPrompt.apply(this, arguments) : (targetNick || def);
+                  };
+                }
+
+                // 2. Interceptar copiado de enlaces para capturar la sala activa
                 if (window.PES6.Core && !window.PES6.Core._onicordHooked) {
                   const origCopy = window.PES6.Core.copyText;
                   window.PES6.Core.copyText = function(text, button, label) {
@@ -703,49 +723,60 @@
                   navigator.clipboard._onicordHooked = true;
                 }
 
+                // 3. Hook al socket de salas PES6.Rooms.Link
                 const hookRoomsLink = () => {
-                  if (window.PES6?.Rooms?.Link?.on && !window.PES6.Rooms._onicordLiveHooked) {
+                  if (window.PES6?.Rooms?.Link && !window.PES6.Rooms._onicordLiveHooked) {
                     window.PES6.Rooms._onicordLiveHooked = true;
+
+                    const updateFromGame = (game) => {
+                      if (game && game.room && game.room !== 'default' && game.room !== 'wait') {
+                        const base = (window.PES6?.Config?.roomShareBase) || window.location.href;
+                        const url = new URL(base, window.location.href);
+                        url.searchParams.set('sala', game.room);
+                        if (game.invite) url.searchParams.set('invite', game.invite);
+                        window._onicordRoomLink = url.href;
+                      } else if (game && !game.room) {
+                        window._onicordRoomLink = null;
+                      }
+                    };
 
                     window.PES6.Rooms.Link.on('rooms', (msg) => {
                       try {
-                        if (msg && msg.game && msg.game.room && msg.game.room !== 'default' && msg.game.room !== 'wait') {
-                          const url = new URL(window.location.href);
-                          url.searchParams.set('sala', msg.game.room);
-                          if (msg.game.invite) url.searchParams.set('invite', msg.game.invite);
-                          window._onicordRoomLink = url.href;
-                        } else if (msg && msg.game && !msg.game.room) {
-                          window._onicordRoomLink = null;
+                        if (msg && msg.game) {
+                          updateFromGame(msg.game);
                         }
                       } catch (_) {}
                     });
 
                     window.PES6.Rooms.Link.on('room-result', (msg) => {
                       try {
-                        if (msg && (msg.action === 'leave' || (msg.action === 'join' && !msg.ok))) {
+                        if (msg && msg.ok && (msg.action === 'create' || msg.action === 'join') && msg.room) {
+                          const base = (window.PES6?.Config?.roomShareBase) || window.location.href;
+                          const url = new URL(base, window.location.href);
+                          url.searchParams.set('sala', msg.room);
+                          if (msg.invite) url.searchParams.set('invite', msg.invite);
+                          window._onicordRoomLink = url.href;
+                        } else if (msg && (msg.action === 'leave' || (msg.action === 'join' && !msg.ok))) {
                           window._onicordRoomLink = null;
                         }
                       } catch (_) {}
                     });
-                  }
 
-                  try {
-                    const r = window.PES6?.Rooms?.currentRoom || window.PES6?.Rooms?.room || (window.PES6?.Rooms?.game && window.PES6?.Rooms?.game?.room);
-                    if (r && r !== 'default' && r !== 'wait') {
-                      const url = new URL(window.location.href);
-                      url.searchParams.set('sala', r);
-                      window._onicordRoomLink = url.href;
-                    }
-                  } catch (_) {}
+                    window.PES6.Rooms.Link.on('open', () => {
+                      const n = getNick();
+                      if (n) {
+                        try { window.PES6.Rooms.Link.send({ type: 'room-nick', nick: n }); } catch (_) {}
+                      }
+                    });
+                  }
                 };
 
                 hookRoomsLink();
                 setInterval(hookRoomsLink, 1000);
 
+                // 4. Aplicar apodo en localStorage, inputs del DOM y PES6.Rooms.PlayerName
                 const applyNick = () => {
-                  const rawNick = window._onicordUserNick;
-                  if (!rawNick || rawNick === 'PLAYER') return;
-                  const nick = String(rawNick).replace(/[\\u0000-\\u001f\\u007f]/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 20);
+                  const nick = getNick();
                   if (!nick) return;
 
                   try {
@@ -755,7 +786,6 @@
 
                   if (window.PES6?.Rooms?.PlayerName) {
                     window.PES6.Rooms.PlayerName.ask = () => nick;
-                    window.PES6.Rooms.PlayerName.get = () => nick;
                   }
 
                   try {
@@ -771,25 +801,37 @@
 
                   if (window.PES6?.Rooms?.Link) {
                     const Link = window.PES6.Rooms.Link;
-                    if (typeof Link.send === 'function') {
+                    if (typeof Link.send === 'function' && typeof Link.isOpen === 'function' && Link.isOpen()) {
                       try {
                         Link.send({ type: 'room-nick', nick: nick });
                       } catch (_) {}
-                    }
-                    if (!Link._onicordNickHooked && typeof Link.on === 'function') {
-                      Link._onicordNickHooked = true;
-                      Link.on('open', () => {
-                        try {
-                          Link.send({ type: 'room-nick', nick: nick });
-                        } catch (_) {}
-                      });
                     }
                   }
                 };
 
                 applyNick();
                 const nickInterval = setInterval(applyNick, 1000);
-                setTimeout(() => clearInterval(nickInterval), 30000);
+                setTimeout(() => clearInterval(nickInterval), 45000);
+
+                // 5. Helper ejecutable para forzar lectura o refresco de sala
+                window._onicordGetActiveRoomLink = function() {
+                  if (window._onicordRoomLink && window._onicordRoomLink.includes('sala=')) {
+                    return window._onicordRoomLink;
+                  }
+                  const shareBtn = document.getElementById('roomsShare');
+                  if (shareBtn && typeof shareBtn.onclick === 'function') {
+                    try {
+                      shareBtn.onclick();
+                      if (window._onicordRoomLink && window._onicordRoomLink.includes('sala=')) {
+                        return window._onicordRoomLink;
+                      }
+                    } catch (_) {}
+                  }
+                  if (window.PES6?.Rooms?.Link?.isOpen && window.PES6.Rooms.Link.isOpen()) {
+                    try { window.PES6.Rooms.Link.send({ type: 'room-list' }); } catch (_) {}
+                  }
+                  return window._onicordRoomLink || null;
+                };
               } catch (e) {
                 console.error('[PES6 Hook Error]', e);
               }
