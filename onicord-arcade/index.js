@@ -224,7 +224,7 @@ const GAMES_REGISTRY = {
     title: "Gartic Phone",
     icon: "draw",
     url: "https://garticphone.com/es/",
-    cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co399o.png",
+    cover: "https://garticphone.com/images/thumb.png",
     shareCapture: {
       triggerSelector: "button.invite, .btInvite, #invite, button[class*=\"invite\" i]",
       windowProperty: "_onicordRoomLink",
