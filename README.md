@@ -44,6 +44,7 @@ Onicord plugins operate through a secure, decentralized architecture:
 
 * **V8 Isolated Sandbox**: System scripts and command handlers run within an isolated Node.js `vm` context (`pluginSandboxService.cjs`). They have no direct access to the host file system or main process except via the injected `Onicord` global object.
 * **Widgets Dashboard Widgets**: UI widgets run inside sandboxed `iframe` containers with `sandbox="allow-scripts allow-same-origin"`. They are wrapped inside Onicord's standardized `onicord-widget-shell` container layout and receive the secure `window.OnicordWidgetAPI` context bridge.
+* **Voice Channel Stage Views**: Interactive canvases and web apps embedded inside voice calls run in secured webview/iframe instances with integrated ad/tracker blocking, responsive canvas scaling, automatic voice teardown, and native confirmation dialog bridges (`window.onicord.confirm`).
 * **Encrypted P2P Network**: Room communications between peers are transmitted via AES-256-GCM encrypted P2P data channels over Hyperswarm.
 * **Permission Gatekeeper**: All API endpoints and data access vectors enforce strict permission checks declared in `manifest.json`.
 
@@ -88,7 +89,7 @@ Onicord completely decouples physical file management from room configuration:
 
 ## 3. Plugin Interaction Vectors
 
-Plugins have 9 primary methods to interact with the application, chat, user interface, Widgets Dashboard, and P2P network:
+Plugins have 11 primary methods to interact with the application, chat, user interface, Widgets Dashboard, voice rooms, and P2P network:
 
 ### 3.1 Slash Command Registration (`Onicord.chat.onCommand`)
 Allows plugins to register custom chat commands (e.g., `/p`, `/y`, `/g`, `/roll`) that users can execute from the chat input.
@@ -335,6 +336,90 @@ Onicord.chat.clearPluginMessages();
 
 ---
 
+### 3.10 Voice Channel Addon Stage Display (`Onicord.ui.openStageView` / `closeStageView`)
+The **Addon Stage** provides a full-canvas interactive presentation, gaming, and application environment embedded directly within voice channels. It is designed for interactive web applications, multiplayer games, collaborative workspaces, and presentations that require high visual real estate while talking with peers. Requires the `ui.stage_view` (or `ui.custom_widget`) permission in `manifest.json`.
+
+#### Opening a Stage from a Slash Command or Sandbox Script:
+```javascript
+Onicord.chat.onCommand('mycommand', (args) => {
+  Onicord.ui.openStageView({
+    id: "my-app-stage",
+    title: "My Application",
+    badge: "Web App",
+    entryPoint: "widgets/launcher.html", // Relative path inside addon directory
+    url: "https://example.com/app",       // Optional external HTTPS web app or game URL
+    isFloating: false,                    // true to start in Picture-in-Picture mode
+    frameScripts: [                       // Injected client scripts
+      "console.log('Stage initialized');"
+    ],
+    shareCapture: {                       // Capture room/lobby codes to invite chat peers
+      queryParam: "room"
+    }
+  });
+});
+```
+
+#### Native Stage Features & Sandboxing Capabilities:
+- **Sandboxed Execution**: External web content runs in an isolated webview/iframe environment restricted to safe network protocols (`https:`, `onicord-media:`).
+- **Built-in Ad & Tracker Blocker**: Automatically shields users from malicious popups, redirects, and intrusive ad networks without requiring external browser extensions.
+- **Voice Lifecycle Synchronization**: When a user leaves or is disconnected from the voice channel, Onicord automatically terminates the active stage session and releases system resources.
+- **Native Confirmation Bridge (`window.onicord.confirm`)**: Embedded web apps and stage widgets can trigger Onicord's native modal confirmation dialogs asynchronously without relying on ugly browser popups:
+  ```javascript
+  const confirmed = await window.onicord.confirm({
+    title: "¿Limpiar datos de navegación?",
+    message: "Esta acción borrará las cookies, caché y partidas guardadas en el almacenamiento local.",
+    confirmText: "Borrar datos",
+    cancelText: "Cancelar",
+    isDestructive: true
+  });
+  if (confirmed) {
+    localStorage.clear();
+    sessionStorage.clear();
+  }
+  ```
+- **Integrated Floating Controls**: Features one-click Fullscreen toggle, isolated browsing data cleanup dialog, and exit controls.
+- **Automatic User Identity**: Automatically injects `window._onicordUserNick` into the stage frame, allowing web apps to seamlessly synchronize player profiles.
+
+#### Programmatically Closing a Stage:
+```javascript
+Onicord.ui.closeStageView();
+```
+
+---
+
+### 3.11 Voice Channel Control Buttons (`Onicord.ui.registerVoiceControlButton`)
+Addons can inject custom interactive buttons directly into Onicord's voice control panel (next to mute, deafen, and screen share controls in `UserPanel`). This allows users inside voice rooms to trigger addon actions, open stage canvases, or toggle features with a single click. Requires the `ui.voice_control_button` permission in `manifest.json`.
+
+#### Programmatic Registration in `index.js`:
+```javascript
+if (typeof Onicord !== "undefined" && Onicord.ui?.registerVoiceControlButton) {
+  Onicord.ui.registerVoiceControlButton({
+    id: "arcade_joystick",
+    icon: "sports_esports",                 // Material symbol icon name or path to PNG/SVG asset
+    tooltip: "Arcade (Catálogo de Juegos)", // Hover tooltip
+    action: "TOGGLE_ARCADE_STAGE",
+    onClick: () => {
+      openArcadeLauncher();
+    }
+  });
+}
+```
+
+#### Declarative Registration in `manifest.json`:
+Buttons can also be statically declared in `manifest.json`:
+```json
+"voiceControlButtons": [
+  {
+    "id": "arcade_joystick",
+    "icon": "sports_esports",
+    "tooltip": "Arcade (Catálogo de Juegos)",
+    "action": "TOGGLE_ARCADE_STAGE"
+  }
+]
+```
+
+---
+
 ## 4. Widgets Dashboard Specification
 
 Dashboard widgets extend Onicord's main grid layout. All dashboard widgets are automatically formatted within Onicord's standardized design system.
@@ -372,6 +457,8 @@ Every plugin and widget must explicitly declare its required permissions in `man
 | `p2p.network` | Real-time P2P data channel | Direct data packet broadcasting |
 | `storage` | Persistent storage | Local JSON storage per addon |
 | `ui.plugin_island` | Sidebar widgets | Plugin Island right-panel cards |
+| `ui.voice_control_button` | Voice control action buttons | Custom action buttons in the active voice bar |
+| `ui.stage_view` | Voice Channel Stage Display | Full-canvas interactive stage inside voice channels |
 | `ui.custom_widget` | Custom UI controls | Custom buttons and panels |
 | `network.outbound` | Outbound HTTP requests | External `fetch()` calls to web APIs |
 
@@ -568,6 +655,7 @@ The compiler will automatically:
 - `build.js`: Official compiler script that packages source directories into `.onipkg` bundles.
 - `plugins/`: Directory containing compiled binary packages (`.onipkg`) categorized by plugin ID.
 - `demo_dashboard_addon/`: Official demo source code for local and P2P collaborative Bento widgets (`scope: "hybrid"`, version `0.1.0`).
+- `onicord-arcade/`: Official Arcade retro and web gaming stage runner for voice channels with multiplayer lobby discovery (`/arcade`, `scope: "hybrid"`, version `0.1.0`).
 - `onicord-polls/`: Official Quick Polls chat addon (`/p`, `scope: "server"`, version `0.1.0`).
 - `onicord-dice/`: Official collaborative dice roller addon for the Addon Island with real-time P2P synchronization and `/roll` command (`scope: "server"`, version `0.1.0`).
 - `youtube-search/`: Official YouTube Search addon (`/y`, `scope: "server"`, version `0.1.0`).
