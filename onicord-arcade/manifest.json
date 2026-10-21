@@ -48,7 +48,6 @@
   "permissions": [
     "ui.voice_control_button",
     "ui.stage_view",
-    "ui.custom_widget",
     "p2p.network",
     "storage",
     "user.profile",
@@ -63,17 +62,6 @@
       "icon": "sports_esports",
       "tooltip": "Arcade (Catálogo de Juegos)",
       "action": "TOGGLE_ARCADE_STAGE"
-    }
-  ],
-  "dashboardWidgets": [
-    {
-      "id": "arcade-catalog",
-      "title": "Arcade",
-      "badgeText": "Juegos",
-      "type": "collaborative",
-      "bgVariant": "dark",
-      "entryPoint": "widgets/arcade_catalog.html",
-      "defaultGeo": { "x": 1, "y": 1, "w": 4, "h": 3 }
     }
   ],
   "commands": [
