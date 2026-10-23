@@ -262,14 +262,48 @@ const GAMES_REGISTRY = {
     url: "https://garticphone.com/es/",
     cover: "https://garticphone.com/images/thumb.png",
     shareCapture: {
-      triggerSelector: "button, [role=\"button\"]",
+      triggerSelector: "button.btLobby, button[class*='invite' i], button[class*='btLobby' i], [class*='btLobby' i], [class*='invite' i], [aria-label*='invit' i]",
       windowProperty: "_onicordRoomLink",
-      queryParam: "c="
+      urlPattern: "garticphone\\.com/(?:[a-zA-Z]{2}/)?([a-zA-Z0-9]{6,12})|garticphone\\.com/.*[?&]c="
     },
     frameScripts: [
       `
         (() => {
           try {
+            // 1. Prevención de excepciones por Permissions Policy en WakeLock
+            if (navigator.wakeLock && typeof navigator.wakeLock.request === 'function') {
+              const origWake = navigator.wakeLock.request.bind(navigator.wakeLock);
+              navigator.wakeLock.request = function(type) {
+                return origWake(type).catch(() => ({ release: () => Promise.resolve() }));
+              };
+            }
+
+            const isGarticRoom = (url) => {
+              if (!url || typeof url !== 'string') return false;
+              const t = url.trim();
+              if (!t.includes('garticphone.com')) return false;
+              if (t.includes('/_next') || t.includes('/images/') || t.includes('/privacy') || t.includes('/terms')) return false;
+              if (t.endsWith('/lobby') || t.includes('/lobby/') || t.includes('/lobby?')) return false;
+              return /garticphone\\.com\\/(?:[a-zA-Z]{2}\\/)?([-_a-zA-Z0-9]{6,16})(?:\\/|\\?|#|$)/i.test(t) ||
+                     /garticphone\\.com\\/.*[?&]c=([a-zA-Z0-9]+)/i.test(t);
+            };
+
+            const normalizeLink = (s) => {
+              if (!s || typeof s !== 'string') return null;
+              let t = s.trim();
+              if (t.startsWith('garticphone.com')) t = 'https://' + t;
+              if (!t.startsWith('http://') && !t.startsWith('https://')) {
+                if (t.match(/^(?:\\/?[a-zA-Z]{2}\\/)?([-_a-zA-Z0-9]{6,16})$/)) {
+                  t = 'https://garticphone.com/' + t.replace(/^\\//, '');
+                } else if (t.includes('c=')) {
+                  t = 'https://garticphone.com/?' + (t.startsWith('?') ? t.slice(1) : t);
+                } else {
+                  return null;
+                }
+              }
+              return isGarticRoom(t) ? t : null;
+            };
+
             const getNick = () => {
               const raw = window._onicordUserNick;
               if (!raw || raw === 'PLAYER' || raw === 'Jugador') return '';
@@ -278,26 +312,66 @@ const GAMES_REGISTRY = {
 
             const targetNick = getNick();
 
-            // 1. Interceptar copiado de enlaces para capturar la sala activa
+            // 2. Interceptar copiado de enlaces por Clipboard API, execCommand y DataTransfer
             if (navigator.clipboard && !navigator.clipboard._onicordHooked) {
               const origWrite = navigator.clipboard.writeText;
               navigator.clipboard.writeText = function(text) {
-                if (typeof text === 'string' && (text.includes('c=') || text.includes('garticphone.com'))) {
-                  window._onicordRoomLink = text.trim();
+                if (typeof text === 'string') {
+                  const norm = normalizeLink(text);
+                  if (norm) window._onicordRoomLink = norm;
                 }
                 return origWrite.apply(this, arguments);
               };
               navigator.clipboard._onicordHooked = true;
             }
 
+            if (document.execCommand && !document._onicordExecHooked) {
+              const origExec = document.execCommand;
+              document.execCommand = function(cmd) {
+                if (String(cmd).toLowerCase() === 'copy') {
+                  try {
+                    const active = document.activeElement;
+                    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') && active.value) {
+                      const norm = normalizeLink(active.value);
+                      if (norm) window._onicordRoomLink = norm;
+                    }
+                    const sel = window.getSelection ? window.getSelection().toString() : '';
+                    if (sel) {
+                      const norm = normalizeLink(sel);
+                      if (norm) window._onicordRoomLink = norm;
+                    }
+                  } catch (_) {}
+                }
+                return origExec.apply(this, arguments);
+              };
+              document._onicordExecHooked = true;
+            }
+
+            if (typeof DataTransfer !== 'undefined' && DataTransfer.prototype.setData && !DataTransfer.prototype._onicordHooked) {
+              const origSetData = DataTransfer.prototype.setData;
+              DataTransfer.prototype.setData = function(format, data) {
+                if (typeof data === 'string') {
+                  const norm = normalizeLink(data);
+                  if (norm) window._onicordRoomLink = norm;
+                }
+                return origSetData.apply(this, arguments);
+              };
+              DataTransfer.prototype._onicordHooked = true;
+            }
+
             if (!document._onicordCopyHooked) {
-              document.addEventListener('copy', () => {
+              document.addEventListener('copy', (e) => {
                 try {
                   const active = document.activeElement;
-                  if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
-                    const val = active.value;
-                    if (val && (val.includes('c=') || val.includes('garticphone.com'))) {
-                      window._onicordRoomLink = val.trim();
+                  if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') && active.value) {
+                    const norm = normalizeLink(active.value);
+                    if (norm) window._onicordRoomLink = norm;
+                  }
+                  if (e.clipboardData) {
+                    const data = e.clipboardData.getData('text/plain');
+                    if (data) {
+                      const norm = normalizeLink(data);
+                      if (norm) window._onicordRoomLink = norm;
                     }
                   }
                 } catch (_) {}
@@ -305,18 +379,68 @@ const GAMES_REGISTRY = {
               document._onicordCopyHooked = true;
             }
 
-            // 2. Monitoreo pasivo de la URL para capturar código de sala
+            // 3. Monitoreo pasivo de la URL y navegación por history
             const checkUrl = () => {
               try {
-                if (window.location && window.location.search && window.location.search.includes('c=')) {
+                if (window.location && window.location.href && isGarticRoom(window.location.href)) {
                   window._onicordRoomLink = window.location.href;
                 }
               } catch (_) {}
             };
             checkUrl();
-            setInterval(checkUrl, 1000);
+            setInterval(checkUrl, 500);
 
-            // 3. Sincronización robusta del apodo con componentes React/Next.js
+            if (window.history && !window.history._onicordHooked) {
+              const origPush = history.pushState;
+              history.pushState = function(state, title, url) {
+                if (url && typeof url === 'string') {
+                  const full = url.startsWith('http') ? url : new URL(url, window.location.href).href;
+                  if (isGarticRoom(full)) window._onicordRoomLink = full;
+                }
+                return origPush.apply(this, arguments);
+              };
+              const origReplace = history.replaceState;
+              history.replaceState = function(state, title, url) {
+                if (url && typeof url === 'string') {
+                  const full = url.startsWith('http') ? url : new URL(url, window.location.href).href;
+                  if (isGarticRoom(full)) window._onicordRoomLink = full;
+                }
+                return origReplace.apply(this, arguments);
+              };
+              window.history._onicordHooked = true;
+            }
+
+            // 4. Sniffer pasivo de WebSocket para capturar código de sala al entrar a partida
+            if (window.WebSocket && !window.WebSocket._onicordHooked) {
+              const origWS = window.WebSocket;
+              window.WebSocket = function(url, protocols) {
+                const ws = new origWS(url, protocols);
+                try {
+                  const urlStr = String(url);
+                  const match = urlStr.match(/[?&]c=([a-zA-Z0-9]+)/) || urlStr.match(/\\/([a-zA-Z0-9]{6,12})/);
+                  if (match) {
+                    const code = match[1];
+                    const lang = (window.location && window.location.pathname && window.location.pathname.match(/^\\/([a-zA-Z]{2})/)) ? window.location.pathname.match(/^\\/([a-zA-Z]{2})/)[1] : 'es';
+                    window._onicordRoomLink = `https://garticphone.com/${lang}/${code}`;
+                  }
+                } catch (_) {}
+                ws.addEventListener('message', function(ev) {
+                  try {
+                    if (typeof ev.data === 'string') {
+                      const m = ev.data.match(/https?:\\/\\/(?:www\\.)?garticphone\\.com\\/(?:[a-zA-Z]{2}\\/)?([a-zA-Z0-9]{6,12})/i);
+                      if (m && isGarticRoom(m[0])) {
+                        window._onicordRoomLink = m[0];
+                      }
+                    }
+                  } catch (_) {}
+                });
+                return ws;
+              };
+              window.WebSocket.prototype = origWS.prototype;
+              window.WebSocket._onicordHooked = true;
+            }
+
+            // 5. Sincronización robusta del apodo con componentes React/Next.js
             const setReactInputValue = (input, val) => {
               try {
                 const descriptor = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
@@ -361,7 +485,7 @@ const GAMES_REGISTRY = {
             const nickInterval = setInterval(applyNick, 600);
             setTimeout(() => clearInterval(nickInterval), 45000);
 
-            // 4. Neutralización de motores de publicidad (AdinPlay, Google Ads, GPT)
+            // 6. Neutralización de motores de publicidad (AdinPlay, Google Ads, GPT)
             try {
               window.aiptag = window.aiptag || {};
               window.aiptag.cmd = window.aiptag.cmd || [];
@@ -391,7 +515,7 @@ const GAMES_REGISTRY = {
               };
             } catch (_) {}
 
-            // 5. Inyección de reglas CSS globales para eliminar al 100% todos los contenedores de anuncios
+            // 7. Inyección de reglas CSS globales para eliminar al 100% todos los contenedores de anuncios
             try {
               const styleId = "onicord-clean-ads-style";
               if (!document.getElementById(styleId)) {
@@ -453,45 +577,147 @@ const GAMES_REGISTRY = {
             hideAds();
             setInterval(hideAds, 1000);
 
-            window._onicordGetActiveRoomLink = function() {
-              if (window._onicordRoomLink && (window._onicordRoomLink.includes('c=') || window._onicordRoomLink.includes('garticphone.com'))) {
+            // 8. Helper asíncrono robusto para obtener el enlace activo de la sala
+            window._onicordGetActiveRoomLink = async function() {
+              if (window._onicordRoomLink && isGarticRoom(window._onicordRoomLink)) {
                 return window._onicordRoomLink;
               }
-              if (window.location && window.location.search && window.location.search.includes('c=')) {
+              if (window.location && window.location.href && isGarticRoom(window.location.href)) {
                 window._onicordRoomLink = window.location.href;
-                return window._onicordRoomLink;
+                return window.location.href;
               }
 
-              // Buscar en inputs o elementos que muestren el link de invitación
+              // Si el usuario está en la pantalla inicial de Gartic Phone (antes de iniciar la sala)
               try {
-                const linkEl = Array.from(document.querySelectorAll('input, a')).find(el => {
-                  const val = el.value || el.href || '';
-                  return typeof val === 'string' && val.includes('c=');
-                });
-                if (linkEl) {
-                  const found = (linkEl.value || linkEl.href).trim();
-                  if (found.startsWith('http')) {
-                    window._onicordRoomLink = found;
-                    return found;
+                const pathname = (window.location && window.location.pathname) || '';
+                if (!pathname.includes('/lobby') && !isGarticRoom(window.location.href)) {
+                  const startBtns = Array.from(document.querySelectorAll('button, [role="button"], a, input[type="button"], div, span'));
+                  const startBtn = startBtns.find(b => {
+                    if (b.children.length > 3) return false;
+                    const t = (b.textContent || '').trim().toLowerCase();
+                    return t === 'iniciar' || t === 'start' || t === 'começar' || t === 'crear sala' || t === 'create room';
+                  });
+                  if (startBtn) {
+                    try {
+                      startBtn.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+                      startBtn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+                      startBtn.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true }));
+                      startBtn.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
+                    } catch (_) {}
+                    if (typeof startBtn.click === 'function') startBtn.click();
+
+                    // Esperar a entrar a la sala/lobby
+                    for (let w = 0; w < 14; w++) {
+                      await new Promise(r => setTimeout(r, 120));
+                      if ((window.location && window.location.pathname.includes('/lobby')) || isGarticRoom(window.location.href)) break;
+                    }
                   }
                 }
               } catch (_) {}
 
-              // Pulsar el botón de invitar del lobby para disparar el copiado
-              const candidates = Array.from(document.querySelectorAll('button, [role="button"], a, input[type="button"]'));
+              // Buscar en storage
+              try {
+                for (let i = 0; i < localStorage.length; i++) {
+                  const val = localStorage.getItem(localStorage.key(i));
+                  if (val && typeof val === 'string') {
+                    const m = val.match(/https?:\\/\\/(?:www\\.)?garticphone\\.com\\/(?:[a-zA-Z]{2}\\/)?([a-zA-Z0-9]{6,12})/i);
+                    if (m && isGarticRoom(m[0])) {
+                      window._onicordRoomLink = m[0];
+                      return m[0];
+                    }
+                  }
+                }
+              } catch (_) {}
+
+              // Buscar en inputs o elementos que muestren el link de invitación
+              try {
+                const elements = Array.from(document.querySelectorAll('input, a, div, span, textarea, [data-link], [data-url]'));
+                for (const el of elements) {
+                  const val = el.value || el.href || el.getAttribute('data-link') || el.getAttribute('data-url') || '';
+                  if (isGarticRoom(val)) {
+                    const found = normalizeLink(val);
+                    if (found) {
+                      window._onicordRoomLink = found;
+                      return found;
+                    }
+                  }
+                  const txt = (el.textContent || '').trim();
+                  if (txt.includes('garticphone.com')) {
+                    const m = txt.match(/https?:\\/\\/(?:www\\.)?garticphone\\.com\\/(?:[a-zA-Z]{2}\\/)?([a-zA-Z0-9]{6,12})/i);
+                    if (m && isGarticRoom(m[0])) {
+                      window._onicordRoomLink = m[0];
+                      return m[0];
+                    }
+                  }
+                }
+              } catch (_) {}
+
+              // Pulsar el botón de invitar del lobby para disparar el copiado o desplegar el modal
+              const candidates = Array.from(document.querySelectorAll('button, [role="button"], a, input[type="button"], div, span'));
               const invBtn = candidates.find(b => {
+                if (b.children.length > 3) return false;
                 const txt = (b.textContent || '').trim().toLowerCase();
                 const aria = (b.getAttribute('aria-label') || '').toLowerCase();
                 const title = (b.getAttribute('title') || '').toLowerCase();
                 const cls = (b.className || '').toString().toLowerCase();
-                return txt.includes('invit') || txt.includes('share') || txt.includes('copiar') ||
-                       aria.includes('invit') || aria.includes('share') || aria.includes('copiar') ||
-                       cls.includes('invite') || cls.includes('share');
+                const id = (b.id || '').toLowerCase();
+                return (
+                  txt === 'invitar' || txt === 'invite' || txt === 'copiar' || txt === 'convidar' ||
+                  txt.includes('invitar') || txt.includes('invite') || txt.includes('copiar enlace') || txt.includes('copy link') || txt.includes('convidar') ||
+                  aria.includes('invit') || aria.includes('share') || aria.includes('copiar') ||
+                  cls.includes('invite') || cls.includes('share') || cls.includes('btlobby') || cls.includes('btinvite') ||
+                  id.includes('invite') || id.includes('share')
+                );
               });
-              if (invBtn && typeof invBtn.click === 'function') {
-                try { invBtn.click(); } catch (_) {}
+
+              if (invBtn) {
+                try {
+                  invBtn.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+                  invBtn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+                  invBtn.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true }));
+                  invBtn.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
+                } catch (_) {}
+                if (typeof invBtn.click === 'function') {
+                  try { invBtn.click(); } catch (_) {}
+                }
+
+                // Esperar un instante para que el copiado asíncrono o modal de invitación ocurra
+                await new Promise(r => setTimeout(r, 220));
+
+                if (window._onicordRoomLink && isGarticRoom(window._onicordRoomLink)) {
+                  return window._onicordRoomLink;
+                }
+
+                // Si abrió un modal de invitación, buscar input o botón secundario de "COPIAR"
+                try {
+                  const modalInputs = Array.from(document.querySelectorAll('input, textarea'));
+                  const foundInput = modalInputs.find(i => isGarticRoom(i.value || ''));
+                  if (foundInput) {
+                    const norm = normalizeLink(foundInput.value);
+                    if (norm) {
+                      window._onicordRoomLink = norm;
+                      return norm;
+                    }
+                  }
+
+                  const copyBtn = Array.from(document.querySelectorAll('button, [role="button"], div, span')).find(b => {
+                    if (b.children.length > 2) return false;
+                    const t = (b.textContent || '').trim().toLowerCase();
+                    return t === 'copiar' || t === 'copy' || t.includes('copiar') || t.includes('copy') || t.includes('enlace');
+                  });
+                  if (copyBtn) {
+                    try {
+                      copyBtn.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+                      copyBtn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+                    } catch (_) {}
+                    if (typeof copyBtn.click === 'function') copyBtn.click();
+                    await new Promise(r => setTimeout(r, 150));
+                  }
+                } catch (_) {}
               }
-              return window._onicordRoomLink || (window.location.href.includes('c=') ? window.location.href : null);
+
+              return (window._onicordRoomLink && isGarticRoom(window._onicordRoomLink)) ? window._onicordRoomLink :
+                     (window.location && window.location.href && isGarticRoom(window.location.href)) ? window.location.href : null;
             };
           } catch (e) {
             console.error('[Gartic Phone Hook Error]', e);
@@ -832,10 +1058,12 @@ if (typeof Onicord !== "undefined" && Onicord.stage?.onResolveStage) {
   Onicord.stage.onResolveStage((stageReq) => {
     if (!stageReq) return null;
     const reqUrl = stageReq.url ? String(stageReq.url).toLowerCase() : "";
+    const reqHost = reqUrl.replace(/^https?:\/\//, "").split("/")[0];
     for (const game of Object.values(GAMES_REGISTRY)) {
       if (!game.url) continue;
       const baseUrl = game.url.split("?")[0].toLowerCase().replace(/\/+$/, "");
-      if (reqUrl.startsWith(baseUrl) || (stageReq.id && stageReq.id === game.id)) {
+      const gameHost = game.url.replace(/^https?:\/\//, "").split("/")[0].toLowerCase();
+      if ((reqHost && reqHost === gameHost) || reqUrl.startsWith(baseUrl) || (stageReq.id && stageReq.id === game.id)) {
         return {
           title: game.title,
           icon: game.icon || "sports_esports",
