@@ -25,7 +25,10 @@
     <a href="#1-architecture--sandboxing-overview">Architecture</a> ·
     <a href="#2-addon-scope-classification--lifecycle-model">Scopes</a> ·
     <a href="#3-plugin-interaction-vectors">Vectors</a> ·
+    <a href="#4-widgets-dashboard-specification">Dashboard Specs</a> ·
+    <a href="#5-unified-granular-permission-system--runtime-data-access-matrix">Permissions Matrix</a> ·
     <a href="#6-addon-creation-structure--compilation-onipkg">Packaging (.onipkg)</a> ·
+    <a href="#7-addon-repository-structure--official-packages">Official Packages</a> ·
     <a href="#8-distribution-and-publishing-workflows">Publishing</a> ·
     <a href="index.json">Catalog (index.json)</a>
   </h4>
@@ -89,7 +92,16 @@ Onicord completely decouples physical file management from room configuration:
 
 ## 3. Plugin Interaction Vectors
 
-Plugins have 14 primary methods to interact with the application, chat, user interface, Widgets Dashboard, voice rooms, and P2P network:
+Plugins have 14 primary methods to interact with the application, chat, user interface, Widgets Dashboard, voice rooms, and P2P network, grouped into 4 functional categories:
+
+| Category | Vectors Included | Primary Focus |
+| :--- | :--- | :--- |
+| **Chat & Slash Commands** | **3.1** Slash Commands · **3.3** Interactive Embeds · **3.4** Action Callbacks · **3.9** Message Purging | Text-based workflows, slash triggers (`/p`, `/roll`, `/g`), and interactive chat cards. |
+| **UI Canvases & Mounting** | **3.2** Bento Dashboard · **3.6** Dynamic Plugin Island · **3.10** Voice Stage Display · **3.11** Voice Control Buttons | Embedding visual widgets into home dashboards, the sidebar capsule, voice bar buttons, and full stages. |
+| **P2P Network & Persistence** | **3.5** Real-time P2P Data · **3.7** Scoped Local Storage · **3.8** External Network `fetch` | Decentralized peer synchronization, persistent JSON key-value store, and external web APIs. |
+| **Voice & Media Runtime** | **3.12** Voice Scoping API · **3.13** Audio Auto-Ducking · **3.14** CSP Media Playback | Call state inspection, peer vocal ducking attenuation, and local audio/video file playback. |
+
+---
 
 ### 3.1 Slash Command Registration (`Onicord.chat.onCommand`)
 Allows plugins to register custom chat commands (e.g., `/p`, `/y`, `/g`, `/roll`) that users can execute from the chat input.
@@ -515,24 +527,51 @@ OnicordWidgetAPI.ui.setBackground({
 
 ---
 
-## 5. Unified Granular Permission System (`manifest.json`)
+## 5. Unified Granular Permission System & Runtime Data Access Matrix
 
-Every plugin and widget must explicitly declare its required permissions in `manifest.json`. The application gatekeeper blocks any API call for ungranted permissions.
+Every plugin, widget, and background script must explicitly declare its required permissions in `manifest.json`. The application gatekeeper blocks any API call for ungranted permissions.
 
-| Permission | Description | Data / Access Vector |
+To accelerate development and provide an instant reference, the matrix below details all runtime access vectors, required permissions, exact method signatures, returned data schemas, and compatible addon scopes.
+
+### 5.1 Runtime Data Access Cheat Sheet
+
+| Permission in `manifest.json` | Execution Context | Exact API Method / Event | Data Structure / Return Value | Scope |
+| :--- | :--- | :--- | :--- | :---: |
+| *(None / Public)* | Iframe Widget | `OnicordWidgetAPI.meta` | `{ roomCode, peerId, widgetId, pluginId, type }` | All |
+| *(None / Public)* | Iframe Widget | Event: `onicord:widget-ready` | Injected on `window` when iframe API is bound | All |
+| `user.profile` | Sandbox (V8)<br/>Iframe Widget | `Onicord.user.getProfile()`<br/>`OnicordWidgetAPI.user.getProfile()` | `{ nickname: string, avatar: string, id: string }` | All |
+| `server.info` | Sandbox (V8)<br/>Iframe Widget | `Onicord.server.getInfo()`<br/>`OnicordWidgetAPI.server.getInfo()` | `{ roomCode: string, serverName: string, memberCount: number }` | `server`<br/>`hybrid` |
+| `audio.state` | Sandbox (V8)<br/>Iframe Widget<br/>Iframe Methods<br/>Iframe Event | `Onicord.voice.getState()`<br/>`OnicordWidgetAPI.voice.getState()`<br/>`OnicordWidgetAPI.voice.isInVoice()`<br/>`OnicordWidgetAPI.voice.getChannelId()`<br/>`OnicordWidgetAPI.voice.getChannelName()`<br/>Event: `ONICORD_VOICE_STATE` | `{ isConnected, isMuted, isDeaf, peers: [] }`<br/>`{ isConnected, isMuted, isDeaf, peers: [] }`<br/>`boolean`<br/>`string \| null`<br/>`string \| null`<br/>`event.data: { inVoice, channelId, channelName, ... }` | All |
+| *(Audio Ducking)* | Iframe Event | Event: `VOICE_DUCKING` | `event.data: { duckMultiplier: 0.3 - 1.0 }` | All |
+| `gaming.activity` | Sandbox (V8)<br/>Iframe Widget | `Onicord.gaming.getActivity()`<br/>`OnicordWidgetAPI.gaming.getActivity()`<br/>`Onicord.gaming.setActivity(data)` | `{ name: string, startTime: number, cover: string }` | All |
+| `p2p.network` | Sandbox (V8)<br/>Iframe Widget | `Onicord.p2p.broadcast(data)`<br/>`OnicordWidgetAPI.p2p.broadcast(data)`<br/>`OnicordWidgetAPI.p2p.onMessage(callback)` | Sends & receives isolated JSON packets to room peers.<br/>Listener signature: `(data, senderPeerId) => void` | `server`<br/>`hybrid` |
+| `storage` | Sandbox (V8)<br/>Iframe Widget | `await Onicord.storage.get/set(key, val)`<br/>`await OnicordWidgetAPI.storage.get/set(key, val)` | Scoped persistent key-value store (returns string or JSON object) | All |
+| `chat.read` | Sandbox (V8) | `Onicord.chat.onCommand(command, handler)` | Registers chat `/command` listener with arguments | `server`<br/>`hybrid` |
+| `chat.send` | Sandbox (V8)<br/>Iframe Widget | `Onicord.chat.sendMessage({ text, embed })`<br/>`Onicord.chat.clearPluginMessages()`<br/>`OnicordWidgetAPI.chat.send(text)` | Publishes `[PLUGIN_EMBED]`, action triggers, or raw text into chat | `server`<br/>`hybrid` |
+| `ui.plugin_island` | Sandbox (V8)<br/>Iframe Widget | `Onicord.ui.registerPluginIslandWidget(opts)`<br/>`OnicordWidgetAPI.island.setSummary(text)`<br/>P2P Broadcast: `data.summary` | Registers Island card; updates 56px capsule status line and springs island open | `server`<br/>`hybrid` |
+| `ui.voice_control_button` | Sandbox / Manifest | `Onicord.ui.registerVoiceControlButton(opts)`<br/>`manifest.json: "voiceControlButtons"` | Registers interactive action buttons in the active voice call bar | All |
+| `ui.stage_view` | Sandbox (V8)<br/>Stage Frame | `Onicord.ui.openStageView(opts)`<br/>`Onicord.ui.closeStageView()`<br/>`await window.onicord.confirm(opts)`<br/>`window._onicordUserNick` | Opens full-canvas stage app; triggers native confirmation modal dialogs | `server`<br/>`hybrid` |
+| `ui.custom_widget` | Iframe Widget | `OnicordWidgetAPI.ui.setBackground(bgData)`<br/>`OnicordWidgetAPI.ui.clearBackground()` | Applies dynamic blurred cover backgrounds or custom themes | All |
+| `network.outbound` | Sandbox / Iframe | `fetch(url, options)` | Standard HTTP/HTTPS REST network requests | All |
+
+---
+
+### 5.2 Declarative Permission Reference Table
+
+| Permission | Description | Target Subsystem & Access Vector |
 | :--- | :--- | :--- |
 | `user.profile` | Access local user profile | User nickname, avatar base64, ID |
 | `server.info` | Access active room information | Room code, server name, member count |
-| `audio.state` | Access voice channel status | Connection state, mute/deaf, voice peers |
+| `audio.state` | Access voice channel status | Connection state, mute/deaf, voice peers, channel scoping |
 | `gaming.activity` | Access Rich Presence game activity | Active game name, start time, cover art |
 | `chat.read` | Read incoming chat messages | Messages and slash command triggers |
 | `chat.send` | Send and purge chat messages | Addon messages and interactive embeds |
-| `p2p.network` | Real-time P2P data channel | Direct data packet broadcasting |
-| `storage` | Persistent storage | Local JSON storage per addon |
-| `ui.plugin_island` | Sidebar widgets | Plugin Island right-panel cards |
-| `ui.voice_control_button` | Voice control action buttons | Custom action buttons in the active voice bar |
+| `p2p.network` | Real-time P2P data channel | Direct data packet broadcasting between room peers |
+| `storage` | Persistent storage | Local JSON key-value storage per addon |
+| `ui.plugin_island` | Sidebar widgets | Plugin Island right-panel cards & capsule summaries |
+| `ui.voice_control_button` | Voice control action buttons | Custom action buttons in the active voice call bar |
 | `ui.stage_view` | Voice Channel Stage Display | Full-canvas interactive stage inside voice channels |
-| `ui.custom_widget` | Custom UI controls | Custom buttons and panels |
+| `ui.custom_widget` | Custom UI controls | Custom buttons, panels, and dynamic container backgrounds |
 | `network.outbound` | Outbound HTTP requests | External `fetch()` calls to web APIs |
 
 ---
