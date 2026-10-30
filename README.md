@@ -1,6 +1,22 @@
-# Onicord Addons
+  <h1>Onicord Addons</h1>
 
-Official open-source addon registry and developer ecosystem for Onicord.
+  <p>
+    <strong>Official developer documentation, technical specifications, and open-source addon registry for Onicord.</strong><br/>
+    <em>Build, test, and distribute decentralized extensions, Bento Dashboard widgets, and chat slash commands formatted as <code>.onipkg</code> bundles.</em>
+  </p>
+
+  <p>
+    <a href="https://github.com/OniverseDesign/onicord">
+      <img src="https://img.shields.io/badge/App-Onicord-cba6f7?style=for-the-badge&logo=github&logoColor=white" alt="Onicord App" />
+    </a>
+    <a href="https://github.com/OniverseDesign/onicord-stickers">
+      <img src="https://img.shields.io/badge/Ecosystem-Stickers-fab387?style=for-the-badge&logo=github&logoColor=white" alt="Onicord Stickers" />
+    </a>
+    <a href="https://github.com/OniverseDesign/onicord/blob/main/LICENSE">
+      <img src="https://img.shields.io/badge/License-GPL%20v3-74c7ec.svg?style=for-the-badge" alt="License: GPL-3.0" />
+    </a>
+    <img src="https://img.shields.io/badge/Format-.onipkg-a6e3a1?style=for-the-badge" alt="Format: .onipkg" />
+  </p>
 
 Onicord Addons are decentralized, sandboxed extensions packaged as `.onipkg` bundles. They allow users and developers to customize their personal Bento Dashboard, add collaborative sidebar tools, run multiplayer games in voice calls, stream movies via watch parties, and automate chat interactions with slash commands.
 
