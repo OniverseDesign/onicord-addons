@@ -66,6 +66,7 @@ if (typeof Onicord !== "undefined" && Onicord.ui?.registerPluginIslandWidget) {
     title: i18n.title,
     entryPoint: "widgets/dice_island.html",
     height: 275,
+    supportsLightMode: true,
   });
 }
 

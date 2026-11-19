@@ -10,12 +10,17 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,300..400,0,0" />
   <style>
     :root {
-      --text: #f8fafc;
-      --subtext: rgba(255, 255, 255, 0.72);
-      --muted: rgba(255, 255, 255, 0.45);
-      --border-die: rgba(255, 255, 255, 0.55);
-      --border-pill: rgba(255, 255, 255, 0.35);
-      --border-subtle: rgba(255, 255, 255, 0.18);
+      --tint-rgb: var(--onicord-tint-rgb, 255 255 255);
+      --text: var(--onicord-text, #f8fafc);
+      --subtext: var(--onicord-subtext, rgb(var(--tint-rgb) / 0.72));
+      --muted: var(--onicord-muted, rgb(var(--tint-rgb) / 0.45));
+      --border-die: rgb(var(--tint-rgb) / 0.55);
+      --border-pill: rgb(var(--tint-rgb) / 0.35);
+      --border-subtle: rgb(var(--tint-rgb) / 0.16);
+      --surface-1: rgb(var(--tint-rgb) / 0.03);
+      --surface-2: rgb(var(--tint-rgb) / 0.06);
+      --surface-3: rgb(var(--tint-rgb) / 0.12);
+      --surface-4: rgb(var(--tint-rgb) / 0.18);
       --squircle-radius: 18px;
       --red: #f38ba8;
       --gold: #f9e2af;
@@ -127,7 +132,7 @@
       cursor: pointer;
       border: 2px dashed var(--border-subtle);
       border-radius: var(--squircle-radius);
-      background: rgba(255, 255, 255, 0.02);
+      background: rgb(var(--tint-rgb) / 0.02);
       transition: border-color 0.18s ease, background 0.18s ease;
       gap: 8px;
       text-align: center;
@@ -136,7 +141,7 @@
 
     .empty-dropzone:hover, .empty-dropzone.dragover, body.dragover .empty-dropzone {
       border-color: var(--border-die);
-      background: rgba(255, 255, 255, 0.05);
+      background: rgb(var(--tint-rgb) / 0.05);
     }
 
     .empty-icon {
@@ -175,13 +180,13 @@
       padding-right: 4px;
       align-content: start;
       scrollbar-width: thin;
-      scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+      scrollbar-color: rgb(var(--tint-rgb) / 0.15) transparent;
       overscroll-behavior: contain;
     }
 
     /* Squircle Sound Button */
     .sound-card {
-      background: rgba(255, 255, 255, 0.035);
+      background: rgb(var(--tint-rgb) / 0.035);
       border: 2px solid var(--border-die);
       border-radius: var(--squircle-radius);
       padding: 8px 6px;
@@ -200,14 +205,14 @@
     }
 
     .sound-card:hover {
-      background: rgba(255, 255, 255, 0.07);
-      border-color: #ffffff;
+      background: rgb(var(--tint-rgb) / 0.07);
+      border-color: var(--text);
     }
 
     .sound-card.playing {
-      border-color: #ffffff !important;
-      background: rgba(255, 255, 255, 0.14) !important;
-      box-shadow: 0 0 18px rgba(255, 255, 255, 0.35) !important;
+      border-color: var(--text) !important;
+      background: rgb(var(--tint-rgb) / 0.14) !important;
+      box-shadow: 0 0 18px rgb(var(--tint-rgb) / 0.35) !important;
     }
 
     .card-icon {
@@ -219,7 +224,7 @@
     }
 
     .sound-card.playing .card-icon {
-      color: #ffffff;
+      color: var(--text);
       animation: iconShake 0.12s infinite alternate ease-in-out;
     }
 
@@ -360,7 +365,7 @@
       border: 1.5px solid var(--border-pill);
       border-radius: 9999px;
       padding: 3px 12px;
-      background: rgba(255, 255, 255, 0.03);
+      background: rgb(var(--tint-rgb) / 0.03);
     }
 
     .pill-btn {
@@ -384,7 +389,7 @@
       width: 65px;
       height: 3px;
       -webkit-appearance: none;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgb(var(--tint-rgb) / 0.2);
       border-radius: 2px;
       outline: none;
       cursor: pointer;
@@ -431,7 +436,7 @@
       padding-right: 4px;
       width: 100%;
       scrollbar-width: thin;
-      scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+      scrollbar-color: rgb(var(--tint-rgb) / 0.15) transparent;
       overscroll-behavior: contain;
     }
 
@@ -442,13 +447,13 @@
       padding: 4px 10px;
       border: 1px solid var(--border-subtle);
       border-radius: 9999px;
-      background: rgba(255, 255, 255, 0.025);
+      background: rgb(var(--tint-rgb) / 0.025);
       transition: background 0.12s ease, border-color 0.12s ease;
       flex-shrink: 0;
     }
 
     .manage-item:hover {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgb(var(--tint-rgb) / 0.06);
       border-color: var(--border-pill);
     }
 
@@ -473,7 +478,7 @@
     }
 
     .manage-name:hover {
-      color: #ffffff;
+      color: var(--text);
     }
 
     .btn-edit-item {
@@ -506,7 +511,7 @@
     }
 
     .manage-input {
-      background: rgba(0, 0, 0, 0.35);
+      background: var(--surface-3);
       border: 1px solid var(--border-die);
       border-radius: 6px;
       color: var(--text);
@@ -520,8 +525,8 @@
     }
 
     .manage-input:focus {
-      border-color: #ffffff;
-      background: rgba(0, 0, 0, 0.5);
+      border-color: var(--text);
+      background: var(--surface-3);
     }
 
     .btn-save-rename {
@@ -540,7 +545,7 @@
     }
 
     .btn-save-rename:hover {
-      color: #ffffff;
+      color: var(--text);
     }
 
     .btn-cancel-rename {
@@ -597,7 +602,7 @@
       align-self: center;
       border: 1.5px solid var(--border-die);
       border-radius: 9999px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgb(var(--tint-rgb) / 0.05);
       color: var(--text);
       padding: 6px 32px;
       font-size: 13px;
@@ -610,12 +615,12 @@
     }
 
     .save-pill-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgb(var(--tint-rgb) / 0.12);
     }
 
     .clear-pill-btn {
       align-self: center;
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      border: 1px solid rgb(var(--tint-rgb) / 0.18);
       border-radius: 9999px;
       background: transparent;
       color: var(--muted);
@@ -645,7 +650,7 @@
       inset: 10px;
       border: 2px dashed var(--border-die);
       border-radius: var(--squircle-radius);
-      background: rgba(255, 255, 255, 0.05);
+      background: rgb(var(--tint-rgb) / 0.05);
       pointer-events: none;
       z-index: 20;
     }
@@ -653,7 +658,7 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgb(var(--tint-rgb) / 0.1);
       border-radius: 4px;
     }
   </style>

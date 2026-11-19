@@ -74,6 +74,17 @@ For software engineers, designers, and contributors building extensions for Onic
 - [Packaging and Publishing Guide](docs/packaging-and-publishing.md)
   Directory structure, `manifest.json` schemas, compiling packages with `node build.js`, self-hosting, and submitting to the official catalog.
 
+### Theme Support (Light & Dark Mode)
+
+Plugin Island widgets and embedded frames automatically receive Onicord's active theme state and CSS custom properties:
+
+- **Opt-in flag**: pass `supportsLightMode: true` to `Onicord.ui.registerPluginIslandWidget({ ..., supportsLightMode: true })` so the island container uses the active theme surface instead of the legacy dark fallback.
+- **Synced CSS tokens & selectors**: `--onicord-text`, `--onicord-subtext`, `--onicord-muted`, `--onicord-tint-rgb`, `--onicord-accent`, `--onicord-danger`, `--onicord-border`, `--onicord-on-accent`, plus `.light-mode` and `[data-theme="light"]` on `:root`.
+- **Runtime API (`OnicordWidgetAPI.theme`)**:
+  - `getMode()`: returns `"light"` or `"dark"`.
+  - `getTokens()`: returns the current theme color tokens.
+  - `onChange(callback)`: subscribes to live mode, accent, and background adjustments (also emitted as `onicord:theme-change` and `ONICORD_THEME_CHANGE` `postMessage`).
+
 ---
 
 ## Compiling Addons (`build.js`)

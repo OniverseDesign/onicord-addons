@@ -7,5 +7,6 @@ if (typeof Onicord !== "undefined" && Onicord.ui?.registerPluginIslandWidget) {
     title: "Soundboard",
     entryPoint: "widgets/island.html",
     height: 275,
+    supportsLightMode: true,
   });
 }
