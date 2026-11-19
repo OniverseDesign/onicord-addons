@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T18:27:24.160Z",
+  "updatedAt": "2026-11-19T18:35:55.019Z",
   "plugins": [
     {
       "id": "onicord-arcade",
@@ -83,7 +83,7 @@
     {
       "id": "onicord-dice",
       "name": "Dices",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "scope": "server",
       "author": "Oniverse",
       "description": "Real-time configurable dice roller for the room.",
@@ -200,7 +200,7 @@
     {
       "id": "onicord-soundboard",
       "name": "Soundboard",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "scope": "hybrid",
       "author": "Oniverse",
       "description": "Soundboard colaborativo P2P para la Isla de Complementos. Carga tus propios audios (.mp3, .wav, .ogg), sincronízalos en tiempo real y reprodúcelos con la sala.",

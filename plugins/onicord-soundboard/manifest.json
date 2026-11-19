@@ -1,7 +1,7 @@
 {
   "id": "onicord-soundboard",
   "name": "Soundboard",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "scope": "hybrid",
   "description": "Soundboard colaborativo P2P para la Isla de Complementos. Carga tus propios audios (.mp3, .wav, .ogg), sincronízalos en tiempo real y reprodúcelos con la sala.",
   "author": "Oniverse",

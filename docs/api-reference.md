@@ -181,7 +181,8 @@ if (typeof Onicord !== "undefined" && Onicord.ui?.registerPluginIslandWidget) {
     id: "dice-island-widget",
     title: "Dice",
     entryPoint: "widgets/dice_island.html",
-    height: 275
+    height: 275,
+    supportsLightMode: true
   });
 }
 ```
@@ -364,6 +365,30 @@ Onicord permits local media sources without CSP violations:
 - `data:` URIs (Base64-encoded audio/video).
 - `mediastream:` for real-time WebRTC streams.
 - Local HTTP proxy streams (`http://127.0.0.1:42883/...`).
+
+---
+
+### 2.15 Theme & Light/Dark Mode API (`OnicordWidgetAPI.theme`)
+Embedded widget frames automatically receive Onicord's active theme state, CSS custom properties, and live updates.
+- **Permission Required**: None
+- **Context**: Iframe Widgets (`SandboxedPluginFrame`)
+
+#### Automatic CSS Synchronization
+On load and whenever the user changes mode, accent, or background settings, Onicord syncs the following onto the iframe's `:root`:
+- **Mode selectors**: `.light-mode` class and `data-theme="light"` attribute (removed in dark mode), plus matching `color-scheme`.
+- **CSS Custom Properties**: `--onicord-text`, `--onicord-subtext`, `--onicord-muted`, `--onicord-faded`, `--onicord-bg-base`, `--onicord-bg-surface`, `--onicord-bg-mantle`, `--onicord-bg-overlay`, `--onicord-accent`, `--onicord-danger`, `--onicord-success`, `--onicord-tint-rgb`, `--onicord-border`, `--onicord-on-accent`, `--onicord-on-danger`.
+- **Opt-in island background**: pass `supportsLightMode: true` to `Onicord.ui.registerPluginIslandWidget(...)` so the Plugin Island uses the active theme surface instead of the legacy dark fallback.
+
+#### JavaScript API & Events
+```javascript
+const mode = window.OnicordWidgetAPI.theme.getMode(); // "light" | "dark"
+const tokens = window.OnicordWidgetAPI.theme.getTokens();
+
+const unsubscribe = window.OnicordWidgetAPI.theme.onChange((theme) => {
+  console.log("Theme updated:", theme.mode, theme.accent);
+});
+```
+Theme updates are also dispatched as a `CustomEvent("onicord:theme-change", { detail: tokens })` and `window.postMessage({ type: "ONICORD_THEME_CHANGE", theme: tokens }, "*")`.
 
 ---
 

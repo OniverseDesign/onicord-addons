@@ -30,9 +30,9 @@ The following official addons are bundled with the repository and available in t
 | :--- | :---: | :--- | :---: | :--- |
 | **Cinema** | `hybrid` | `onicord-cinema` | `0.2.0` | Decentralized Watch Party addon with Stremio v3 protocol, autonomous native P2P torrent engine, on-the-fly FFmpeg transcoding, and server favorites (`/cinema`). |
 | **Arcade** | `hybrid` | `onicord-arcade` | `0.2.0` | Voice channel retro and web gaming stage runner with multiplayer room discovery, ad blocking, and customizable game catalog (`/arcade`). |
-| **Soundboard** | `hybrid` | `onicord-soundboard` | `0.2.0` | Collaborative soundboard for the Plugin Island sidebar with voice channel scoping, audio uploading, dynamic marquee, and private preview. |
+| **Soundboard** | `hybrid` | `onicord-soundboard` | `0.2.1` | Collaborative soundboard for the Plugin Island sidebar with voice channel scoping, audio uploading, dynamic marquee, and private preview. |
 | **Quick Polls** | `server` | `onicord-polls` | `0.2.0` | Interactive real-time polls embedded directly into text channels with live voter tracking (`/p`). |
-| **Dices** | `server` | `onicord-dice` | `0.2.0` | Collaborative 3D dice roller for the Plugin Island with real-time P2P physics synchronization (`/roll`). |
+| **Dices** | `server` | `onicord-dice` | `0.2.1` | Collaborative 3D dice roller for the Plugin Island with real-time P2P physics synchronization (`/roll`). |
 | **YouTube Search** | `server` | `onicord-youtube-search` | `0.2.0` | Inline video discovery and search embeds for text channels (`/y`). |
 | **Google Search** | `server` | `onicord-google-search` | `0.2.0` | Web search summary cards and link preview embeds for text channels (`/g`). |
 | **Demo Widgets Addon** | `hybrid` | `com.oniverse.demo_dashboard_addon` | `0.2.0` | Reference developer template illustrating local Pomodoro timers and collaborative P2P notes. |
@@ -73,17 +73,6 @@ For software engineers, designers, and contributors building extensions for Onic
 
 - [Packaging and Publishing Guide](docs/packaging-and-publishing.md)
   Directory structure, `manifest.json` schemas, compiling packages with `node build.js`, self-hosting, and submitting to the official catalog.
-
-### Theme Support (Light & Dark Mode)
-
-Plugin Island widgets and embedded frames automatically receive Onicord's active theme state and CSS custom properties:
-
-- **Opt-in flag**: pass `supportsLightMode: true` to `Onicord.ui.registerPluginIslandWidget({ ..., supportsLightMode: true })` so the island container uses the active theme surface instead of the legacy dark fallback.
-- **Synced CSS tokens & selectors**: `--onicord-text`, `--onicord-subtext`, `--onicord-muted`, `--onicord-tint-rgb`, `--onicord-accent`, `--onicord-danger`, `--onicord-border`, `--onicord-on-accent`, plus `.light-mode` and `[data-theme="light"]` on `:root`.
-- **Runtime API (`OnicordWidgetAPI.theme`)**:
-  - `getMode()`: returns `"light"` or `"dark"`.
-  - `getTokens()`: returns the current theme color tokens.
-  - `onChange(callback)`: subscribes to live mode, accent, and background adjustments (also emitted as `onicord:theme-change` and `ONICORD_THEME_CHANGE` `postMessage`).
 
 ---
 

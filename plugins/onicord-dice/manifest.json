@@ -1,7 +1,7 @@
 {
   "id": "onicord-dice",
   "name": "Dices",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "scope": "server",
   "author": "Oniverse",
   "description": "Real-time configurable dice roller for the room.",
