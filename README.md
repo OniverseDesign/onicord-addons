@@ -12,6 +12,9 @@
     <a href="https://github.com/OniverseDesign/onicord-stickers">
       <img src="https://img.shields.io/badge/Ecosystem-Stickers-fab387?style=for-the-badge&logo=github&logoColor=white" alt="Onicord Stickers" />
     </a>
+    <a href="https://github.com/OniverseDesign/onicord-emojis">
+      <img src="https://img.shields.io/badge/Ecosystem-Emojis-f5c2e7?style=for-the-badge&logo=github&logoColor=white" alt="Onicord Emojis" />
+    </a>
     <a href="https://github.com/OniverseDesign/onicord/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/License-GPL%20v3-74c7ec.svg?style=for-the-badge" alt="License: GPL-3.0" />
     </a>
